@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brawl Stars App - HTML/CSS/JS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: rgba(30, 30, 30, 1); /* Sfondo principale */
+            color: white; /* Colore testo predefinito */
+        }
+        .text-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Animazioni semplici per le sezioni */
+        @keyframes fade-in-down {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fade-in-down 0.8s ease-out forwards;
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+            animation-delay: 0.2s; /* Ritardo per un effetto a cascata */
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-zinc-900 p-4 shadow-lg sticky top-0 z-50 rounded-b-lg m-4 border-b border-zinc-700">
+        <div class="container mx-auto flex flex-wrap justify-between items-center">
+            <button id="home-nav-button" class="text-yellow-400 text-3xl font-extrabold hover:text-yellow-300 transition duration-300 p-2 rounded-lg">
+                Brawl Stars App
+            </button>
+            <div class="flex space-x-4 md:space-x-8 mt-2 md:mt-0">
+                <button id="maps-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
+                    Mappe
+                </button>
+                <button id="classes-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
+                    Classi Brawler
+                </button>
+                <button id="description-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
+                    Descrizioni
+                </button>
+                <button id="about-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
+                    Info
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="content-area" class="container mx-auto p-4"></main>
+
+    <script>
+        // Funzione per generare URL di immagini placeholder con testo e colori specifici
+        const getPlaceholderImage = (width, height, bgColor, textColor, text) => {
+            return `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodeURIComponent(text)}`;
+        };
+
+        // Dati dei brawler espansi con icone e statistiche dettagliate
+        const allBrawlersData = [
+            {
+                name: "Shelly",
+                description: "Shelly è un brawler comune che infligge ingenti danni con il suo super, distruggendo muri e eliminando gruppi di nemici.",
+                rarity: "Comune",
+                role: "Assaltatore",
+                icon: getPlaceholderImage(50, 50, "E91E63", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 5300,
+                    attack: "Colpo di Fucile",
+                    attackDamage: 300,
+                    super: "Super Shotgun",
+                    superDamage: 400,
+                    gadgets: [
+                        { name: "Dash", description: "Shelly scatta in avanti di una breve distanza." },
+                        { name: "Scatto Tattico", description: "Shelly rallenta i nemici con il suo prossimo attacco." }
+                    ],
+                    starPowers: [
+                        { name: "Conchiglia d'Acciaio", description: "Shelly ottiene uno scudo che riduce i danni quando ha poca salute." },
+                        { name: "Raffica Letale", description: "Il Super di Shelly rallenta i nemici per 3 secondi." }
+                    ]
+                },
+                tips: ["Usa il suo super per distruggere ostacoli e sorprendere i nemici.", "Ottima negli scontri ravvicinati.", "Può facilmente eliminare brawler con poca salute da vicino."]
+            },
+            {
+                name: "Colt",
+                description: "Colt spara proiettili a lungo raggio che possono essere difficili da schivare. Il suo super spara una raffica di proiettili che distruggono tutto.",
+                rarity: "Comune",
+                role: "Assaltatore",
+                icon: getPlaceholderImage(50, 50, "007BFF", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 4000,
+                    attack: "Doppia Raffica",
+                    attackDamage: 360,
+                    super: "Proiettili D'Acciaio",
+                    superDamage: 420,
+                    gadgets: [
+                        { name: "Caricatore Veloce", description: "Ricarica istantaneamente 2 munizioni." },
+                        { name: "Ricerca Proiettili", description: "Il prossimo attacco di Colt si muove più velocemente e ha più gittata." }
+                    ],
+                    starPowers: [
+                        { name: "Stivali Leggeri", description: "La velocità di movimento di Colt aumenta del 10%." },
+                        { name: "Colpo Magico", description: "I proiettili di Colt volano più lontano." }
+                    ]
+                },
+                tips: ["Mantiene la distanza e mira bene.", "Il super può essere usato per controllare le aree o distruggere coperture.", "Eccellente nel poke e nel finire i nemici in fuga."]
+            },
+            {
+                name: "Poco",
+                description: "Poco è un brawler di supporto che cura i suoi alleati e danneggia i nemici con le sue note musicali.",
+                rarity: "Raro",
+                role: "Supporto",
+                icon: getPlaceholderImage(50, 50, "FFEB3B", "000000", "BRAWLER_FACE"),
+                stats: {
+                    hp: 6000,
+                    attack: "Potere della Musica",
+                    attackDamage: 700,
+                    super: "Encore",
+                    superHealing: 2940,
+                    gadgets: [
+                        { name: "Accordatura Improvvisata", description: "Poco e gli alleati vicini curano 500 salute al secondo per 5 secondi." },
+                        { name: "Accordatura Tonica", description: "Il prossimo attacco di Poco cura gli alleati invece di danneggiare i nemici." }
+                    ],
+                    starPowers: [
+                        { name: "Maledizione", description: "L'attacco di Poco danneggia i nemici attraverso gli ostacoli." },
+                        { name: "Guarigione Musicale", description: "Il super di Poco cura anche lui stesso." }
+                    ]
+                },
+                tips: ["Rimani vicino ai tuoi alleati per curarli.", "Il suo super cura una vasta area e può salvare la tua squadra.", "Non sottovalutare i suoi danni ad area."]
+            },
+            {
+                name: "Leon",
+                description: "Leon è un brawler leggendario che può diventare invisibile per sorprendere i nemici e infliggere danni massicci da vicino.",
+                rarity: "Leggendario",
+                role: "Assassino",
+                icon: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 4400,
+                    attack: "Lame a Vortice",
+                    attackDamage: 580,
+                    super: "Bomba Fumo",
+                    superDuration: "6 sec",
+                    gadgets: [
+                        { name: "Miraggio", description: "Crea un clone illusorio di Leon per confondere i nemici." },
+                        { name: "Lecca-Lecca Illusionista", description: "Leon e gli alleati vicini diventano invisibili in una piccola area." }
+                    ],
+                    starPowers: [
+                        { name: "Fumo Velato", description: "La velocità di movimento di Leon aumenta del 24% quando è invisibile." },
+                        { name: "Ombra Infernale", description: "Quando Leon ha poca salute, spara più lame." }
+                    ]
+                },
+                tips: ["Usa l'invisibilità per avvicinarti ai nemici inosservato.", "Il suo attacco è più forte da vicino.", "Ottimo per il 'clutch' nelle fasi finali della partita."]
+            },
+            {
+                name: "Spike",
+                description: "Spike è un brawler leggendario che lancia cactus esplosivi che si dividono in spine. Il suo super rallenta e danneggia i nemici.",
+                rarity: "Leggendario",
+                role: "Cecchino",
+                icon: getPlaceholderImage(50, 50, "4CAF50", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 3400,
+                    attack: "Cactus Acuminato",
+                    attackDamage: 520,
+                    super: "Bomba Spinoso",
+                    superDamage: 100,
+                    gadgets: [
+                        { name: "Granata di Spine", description: "Spike lancia 3 granate di spine che rimbalzano sui muri." },
+                        { name: "Cactus Spinato", description: "Spike lascia una trappola che rallenta e danneggia i nemici." }
+                    ],
+                    starPowers: [
+                        { name: "Ghiaccio al Limone", description: "Il super di Spike cura lui stesso per 800 salute al secondo quando è nella sua area." },
+                        { name: "Puntura", description: "L'attacco di Spike rallenta i nemici colpiti." }
+                    ]
+                },
+                tips: ["Sfrutta l'effetto ad area del suo attacco.", "Il super è ottimo per bloccare le vie di fuga o controllare obiettivi.", "Eccelle contro brawler con poca mobilità."]
+            },
+            {
+                name: "Mortis",
+                description: "Mortis è un brawler mitico che si muove rapidamente con i suoi scatti, rendendolo difficile da colpire. Eccelle nell'eliminare brawler a basso HP.",
+                rarity: "Mitico",
+                role: "Assassino",
+                icon: getPlaceholderImage(50, 50, "7B1FA2", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 5300,
+                    attack: "Pala Balenante",
+                    attackDamage: 900,
+                    super: "Assalto Sanguinario",
+                    superHealing: 1000,
+                    gadgets: [
+                        { name: "Giro del Terrore", description: "Mortis effettua uno scatto extra che infligge 1300 danni ai nemici vicini." },
+                        { name: "Pala Veloce", description: "Mortis carica il suo attacco di base per un colpo più potente." }
+                    ],
+                    starPowers: [
+                        { name: "Raccolta di Anime", description: "Quando Mortis elimina un brawler, recupera 1800 salute." },
+                        { name: "Scatto Serale", description: "La velocità di ricarica di Mortis è aumentata del 15%." }
+                    ]
+                },
+                tips: ["Usalo per cacciare brawler deboli o per fuggire.", "Il suo super ti permette di recuperare salute dai nemici.", "Richiede pratica per essere padroneggiato."]
+            },
+            {
+                name: "Crow",
+                description: "Crow è un brawler leggendario che lancia tre pugnali avvelenati, infliggendo danni nel tempo. Il suo super gli permette di saltare e lanciare un'esplosione di pugnali.",
+                rarity: "Leggendario",
+                role: "Assassino",
+                icon: getPlaceholderImage(50, 50, "607D8B", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 3600,
+                    attack: "Dagger Toss",
+                    attackDamage: 400,
+                    super: "Swoop",
+                    superDamage: 400,
+                    gadgets: [
+                        { name: "Fiala Tossica", description: "Crow lancia un veleno più potente che rallenta i nemici." },
+                        { name: "Scudo Piumato", description: "Crow ottiene uno scudo che riduce tutti i danni subiti del 60% per 3 secondi." }
+                    ],
+                    starPowers: [
+                        { name: "Tossicità", description: "I brawler avvelenati infliggono il 20% in meno di danni." },
+                        { name: "Morso Letale", description: "Il veleno di Crow infligge 120 danni extra per ogni pugnale." }
+                    ]
+                },
+                tips: ["Metti pressione sui nemici con il veleno.", "Usa il super per entrare e uscire rapidamente dagli scontri.", "Ottimo per tenere sotto controllo i brawler avversari."]
+            },
+            {
+                name: "El Primo",
+                description: "El Primo è un brawler peso massimo con tanta salute e pugni potenti. Il suo super gli permette di saltare e schiantarsi sui nemici.",
+                rarity: "Raro",
+                role: "Peso Massimo",
+                icon: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 8000,
+                    attack: "Fists of Fury",
+                    attackDamage: 360,
+                    super: "El Fuego!",
+                    superDamage: 1000,
+                    gadgets: [
+                        { name: "Suplex supplementare", description: "El Primo afferra il nemico più vicino e lo lancia dietro di sé." },
+                        { name: "Cintura da Wrestler", description: "El Primo subisce il 25% in meno di danni per 3 secondi." }
+                    ],
+                    starPowers: [
+                        { name: "Meteorite di Fuoco", description: "I nemici colpiti dal super di El Primo prendono fuoco per 4 secondi." },
+                        { name: "El Furia!", description: "La velocità di movimento di El Primo aumenta del 25% quando il suo super è pronto." }
+                    ]
+                },
+                tips: ["Carica il tuo super rapidamente attaccando.", "Usa il super per avvicinarti ai nemici o scappare.", "Molto forte negli scontri ravvicinati."]
+            },
+            {
+                name: "Frank",
+                description: "Frank è un brawler peso massimo che colpisce con un martello gigante, ma è vulnerabile mentre carica l'attacco. Il suo super stordisce i nemici.",
+                rarity: "Epico",
+                role: "Peso Massimo",
+                icon: getPlaceholderImage(50, 50, "795548", "FFFFFF", "BRAWLER_FACE"),
+                stats: {
+                    hp: 8400,
+                    attack: "Hammer Hit",
+                    attackDamage: 1200,
+                    super: "Stun Flick",
+                    superDuration: "3 sec",
+                    gadgets: [
+                        { name: "Cuffie Anti-rumore", description: "Frank diventa immune agli effetti di stordimento, rallentamento e respingimento per 2 secondi." },
+                        { name: "Vampirismo", description: "Frank assorbe il 25% dei danni che infligge come salute." }
+                    ],
+                    starPowers: [
+                        { name: "Spugna", description: "Frank ottiene il 1100 di salute extra." },
+                        { name: "Vendetta", description: "Frank infligge il 25% in più di danni quando è ferito." }
+                    ]
+                },
+                tips: ["Trova un buon momento per usare l'attacco e il super, dato che sei immobile.", "Il super è ottimo per interrompere i nemici o i loro super.", "Sfrutta i muri per proteggerti mentre attacchi."]
+            },
+            {
+                name: "Piper",
+                description: "Piper è un cecchino che infligge più danni quanto più è lontana dal bersaglio. Il suo super le permette di saltare in aria e lanciare granate.",
+                rarity: "Epico",
+                role: "Cecchino",
+                icon: getPlaceholderImage(50, 50, "F8BBD0", "000000", "BRAWLER_FACE"),
+                stats: {
+                    hp: 3600,
+                    attack: "Ombrello Preciso",
+                    attackDamage: 1520, // Max damage
+                    super: "Volo d'Amore",
+                    superDamage: 200,
+                    gadgets: [
+                        { name: "Spilla a Scatto", description: "Piper spara un proiettile che rallenta i nemici." },
+                        { name: "Spilla d'Addio", description: "Piper spara 4 proiettili che cercano i nemici più vicini." }
+                    ],
+                    starPowers: [
+                        { name: "Ambush", description: "Piper infligge 800 danni extra quando è nascosta nel cespuglio." },
+                        { name: "Trappola Furtiva", description: "Piper spara un proiettile che infligge 500 danni extra se colpisce un nemico nascosto." }
+                    ]
+                },
+                tips: ["Mantieni la distanza per massimizzare i danni.", "Usa il super per scappare da situazioni pericolose o per finire nemici.", "Ottima nelle mappe aperte."]
+            },
+            {
+                name: "Bea",
+                description: "Bea è un cecchino che spara proiettili lenti ma potenti. Se colpisce, il suo prossimo proiettile è potenziato.",
+                rarity: "Epico",
+                role: "Cecchino",
+                icon: getPlaceholderImage(50, 50, "FFC107", "000000", "BRAWLER_FACE"),
+                stats: {
+                    hp: 3600,
+                    attack: "Fucile Aculeo",
+                    attackDamage: 800,
+                    super: "Sciame di Api",
+                    superDamage: 100,
+                    gadgets: [
+                        { name: "Miele Appiccicoso", description: "Bea lascia cadere una pozza di miele che rallenta i nemici." },
+                        { name: "Stinger Super", description: "Bea lancia un proiettile che infligge il 100% in più di danni." }
+                    ],
+                    starPowers: [
+                        { name: "Sciame Impetuoso", description: "Bea ottiene uno scudo che riduce i danni quando ha poca salute." },
+                        { name: "Vola Come un'Ape", description: "La velocità di ricarica del super di Bea aumenta del 10%." }
+                    ]
+                },
+                tips: ["Colpisci il primo proiettile per potenziare il successivo.", "Il suo super è ottimo per rallentare più nemici.", "Eccellente nel poke e nel controllo delle corsie."]
+            }
+        ];
+
+        // Dati delle mappe
+        const allMapsData = [
+            {
+                name: "Caccia al Tesoro",
+                mode: "Arraffagemme",
+                mapImage: getPlaceholderImage(400, 200, "28a745", "FFFFFF", "Caccia+al+Tesoro"),
+                modeImage: getPlaceholderImage(50, 50, "FFC107", "000000", "💎"),
+                bestBrawlers: ["Poco", "Pam", "Jessie"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            {
+                name: "Rapina al Centro",
+                mode: "Rapina",
+                mapImage: getPlaceholderImage(400, 200, "dc3545", "FFFFFF", "Rapina+al+Centro"),
+                modeImage: getPlaceholderImage(50, 50, "FF5722", "FFFFFF", "💰"),
+                bestBrawlers: ["Shelly", "Bull", "Colt"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            {
+                name: "Zona Calda: Anello di Fuoco",
+                mode: "Zona Calda",
+                mapImage: getPlaceholderImage(400, 200, "6f42c1", "FFFFFF", "Anello+di+Fuoco"),
+                modeImage: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "🔥"),
+                bestBrawlers: ["Rosa", "Amber", "Spike"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            {
+                name: "Footbrawl: Centro Campo",
+                mode: "Footbrawl",
+                mapImage: getPlaceholderImage(400, 200, "007bff", "FFFFFF", "Centro+Campo"),
+                modeImage: getPlaceholderImage(50, 50, "2196F3", "FFFFFF", "⚽"),
+                bestBrawlers: ["Mortis", "El Primo", "Frank"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            {
+                name: "Ricercati: Fuga Stellare",
+                mode: "Ricercati",
+                mapImage: getPlaceholderImage(400, 200, "fd7e14", "FFFFFF", "Fuga+Stellare"),
+                modeImage: getPlaceholderImage(50, 50, "673AB7", "FFFFFF", "⭐"),
+                bestBrawlers: ["Piper", "Bea", "Brock"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            {
+                name: "Sopravvivenza: Isola del Teschio",
+                mode: "Sopravvivenza",
+                mapImage: getPlaceholderImage(400, 200, "343a40", "FFFFFF", "Isola+del+Teschio"),
+                modeImage: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "💀"),
+                bestBrawlers: ["Bull", "Shelly", "Leon"].map(name => allBrawlersData.find(b => b.name === name))
+            }
+        ];
+
+        const availableModesData = [
+            { name: "Tutte le Modalità", icon: getPlaceholderImage(50, 50, "6c757d", "FFFFFF", "ALL"), filter: null },
+            { name: "Arraffagemme", icon: getPlaceholderImage(50, 50, "FFC107", "000000", "💎"), filter: "Arraffagemme" },
+            { name: "Rapina", icon: getPlaceholderImage(50, 50, "FF5722", "FFFFFF", "💰"), filter: "Rapina" },
+            { name: "Zona Calda", icon: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "🔥"), filter: "Zona Calda" },
+            { name: "Footbrawl", icon: getPlaceholderImage(50, 50, "2196F3", "FFFFFF", "⚽"), filter: "Footbrawl" },
+            { name: "Ricercati", icon: getPlaceholderImage(50, 50, "673AB7", "FFFFFF", "⭐"), filter: "Ricercati" },
+            { name: "Sopravvivenza", icon: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "💀"), filter: "Sopravvivenza" }
+        ];
+
+        const brawlerClassesData = {
+            "Assassini": { emoji: "🔪", brawlers: ["Mortis", "Leon", "Crow"] },
+            "Peso Massimo": { emoji: "💪", brawlers: ["El Primo", "Frank"] },
+            "Supporto": { emoji: "🩹", brawlers: ["Poco", "Pam"] },
+            "Controllori": { emoji: "🌐", brawlers: ["Jessie"] },
+            "Assaltatori": { emoji: "💥", brawlers: ["Shelly", "Colt"] },
+            "Cecchino": { emoji: "🎯", brawlers: ["Spike", "Piper", "Bea"] },
+            "Artiglieri": { emoji: "💣", brawlers: ["Barley", "Dynamike"] },
+        };
+
+        // Stati dell'applicazione (equivalenti a useState di React)
+        let activeSection = 'home';
+        let selectedBrawler = null;
+        let selectedModeFilter = null; // Stato per il filtro delle mappe
+
+        const contentArea = document.getElementById('content-area');
+        const navButtons = {
+            'home': document.getElementById('home-nav-button'),
+            'mapsAndBrawlers': document.getElementById('maps-nav-button'),
+            'classes': document.getElementById('classes-nav-button'),
+            'description': document.getElementById('description-nav-button'),
+            'about': document.getElementById('about-nav-button')
+        };
+
+        // Funzione per navigare tra le sezioni
+        const navigate = (section, brawlerName = null) => {
+            activeSection = section;
+            selectedBrawler = brawlerName ? allBrawlersData.find(b => b.name === brawlerName) : null;
+            renderSection();
+            updateNavButtonStyles(); // Aggiorna gli stili dei bottoni di navigazione
+        };
+
+        // Aggiorna gli stili dei bottoni di navigazione
+        const updateNavButtonStyles = () => {
+            for (const key in navButtons) {
+                if (navButtons[key]) {
+                    navButtons[key].classList.remove('bg-purple-600');
+                    if (key === 'maps' && activeSection === 'mapsAndBrawlers') {
+                         navButtons[key].classList.add('bg-purple-600');
+                    } else if (key === 'classes' && activeSection === 'brawlerClasses') {
+                         navButtons[key].classList.add('bg-purple-600');
+                    } else if (key === 'description' && activeSection === 'brawlerDescription') {
+                         navButtons[key].classList.add('bg-purple-600');
+                    } else if (key === 'about' && activeSection === 'about') {
+                         navButtons[key].classList.add('bg-purple-600');
+                    } else if (key === 'home' && activeSection === 'home') {
+                         navButtons[key].classList.add('bg-purple-600');
+                    }
+                }
+            }
+        };
+
+
+        // --- Funzioni per renderizzare le singole sezioni ---
+
+        const renderHomeSection = () => {
+            contentArea.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-6 bg-[rgba(30,30,30,1)] text-white rounded-lg shadow-xl m-4">
+                    <h1 class="text-5xl md:text-7xl font-extrabold mb-6 text-yellow-400 drop-shadow-lg text-center animate-fade-in-down">
+                        Benvenuto nell'App di Brawl Stars!
+                    </h1>
+                    <p class="text-lg md:text-xl text-[#bbbbbb] mb-8 text-center max-w-2xl animate-fade-in-up">
+                        Esplora mappe, brawler e scopri tutti i dettagli sul tuo gioco preferito.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
+                        <button id="home-maps-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
+                            Mappe e Migliori Brawler
+                        </button>
+                        <button id="home-classes-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
+                            Classi Brawler
+                        </button>
+                        <button id="home-description-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
+                            Descrizione Brawler
+                        </button>
+                        <button id="home-about-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
+                            Informazioni
+                        </button>
+                    </div>
+                </div>
+            `;
+            // Aggiungi listener ai bottoni della home
+            document.getElementById('home-maps-button').onclick = () => navigate('mapsAndBrawlers');
+            document.getElementById('home-classes-button').onclick = () => navigate('brawlerClasses');
+            document.getElementById('home-description-button').onclick = () => navigate('brawlerDescription');
+            document.getElementById('home-about-button').onclick = () => navigate('about');
+        };
+
+        const renderMapsAndBestBrawlers = () => {
+            const filteredMaps = selectedModeFilter
+                ? allMapsData.filter(map => map.mode === selectedModeFilter)
+                : allMapsData;
+
+            let mapsHtml = '';
+            filteredMaps.forEach(map => {
+                let brawlersListHtml = '';
+                map.bestBrawlers.forEach(brawler => {
+                    if (brawler) {
+                        brawlersListHtml += `
+                            <li class="flex items-center mb-2 last:mb-0">
+                                <button data-brawler-name="${brawler.name}" class="brawler-detail-button flex items-center p-2 rounded-lg hover:bg-zinc-700 transition duration-200 w-full text-left">
+                                    <img src="${brawler.icon}" alt="${brawler.name}" class="w-8 h-8 rounded-full mr-2 object-cover border border-purple-400 shadow-md" />
+                                    <span class="text-md text-[#bbbbbb] font-medium">${brawler.name}</span>
+                                </button>
+                            </li>
+                        `;
+                    }
+                });
+
+                mapsHtml += `
+                    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105 flex flex-col items-center">
+                        <h3 class="text-2xl font-semibold mb-2 text-white text-center">${map.name}</h3>
+                        <img src="${map.mapImage}" alt="Mappa: ${map.name}" class="w-full h-auto rounded-lg mb-4 object-cover border border-zinc-600" />
+                        <div class="flex items-center mb-4">
+                            <img src="${map.modeImage}" alt="Modalità: ${map.mode}" class="w-10 h-10 rounded-full mr-2 object-cover border-2 border-yellow-400 shadow-md" />
+                            <p class="text-lg text-[#bbbbbb]">Modalità: <span class="font-medium">${map.mode}</span></p>
+                        </div>
+                        <p class="text-lg text-[#bbbbbb] mb-2">Migliori Brawler:</p>
+                        <ul class="list-none p-0 w-full">
+                            ${brawlersListHtml}
+                        </ul>
+                    </div>
+                `;
+            });
+
+            let modeFilterButtonsHtml = '';
+            availableModesData.forEach(mode => {
+                const isActive = selectedModeFilter === mode.filter ? 'bg-purple-600 border-purple-400' : 'hover:bg-zinc-700 border-zinc-700';
+                modeFilterButtonsHtml += `
+                    <button data-mode-filter="${mode.filter}" class="mode-filter-button flex flex-col items-center p-3 rounded-xl transition duration-300 ${isActive} border-2">
+                        <img src="${mode.icon}" alt="${mode.name}" class="w-12 h-12 rounded-full mb-2 object-cover" />
+                        <span class="text-sm font-medium text-white">${mode.name}</span>
+                    </button>
+                `;
+            });
+
+            contentArea.innerHTML = `
+                <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
+                    <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Mappe e Migliori Brawler</h2>
+
+                    <div class="mb-8 p-4 bg-zinc-800 rounded-xl shadow-lg border border-zinc-700">
+                        <h3 class="text-2xl font-semibold text-white mb-4 text-center">Filtra per Modalità</h3>
+                        <div id="mode-filter-container" class="flex flex-wrap justify-center gap-4">
+                            ${modeFilterButtonsHtml}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${mapsHtml}
+                    </div>
+                </div>
+            `;
+            // Add event listeners using delegation for dynamically created elements
+            contentArea.querySelectorAll('.brawler-detail-button').forEach(button => {
+                button.onclick = (event) => navigate('brawlerDetail', event.currentTarget.dataset.brawlerName);
+            });
+            contentArea.querySelectorAll('.mode-filter-button').forEach(button => {
+                button.onclick = (event) => {
+                    selectedModeFilter = event.currentTarget.dataset.modeFilter === 'null' ? null : event.currentTarget.dataset.modeFilter;
+                    renderMapsAndBestBrawlers(); // Re-render to apply filter and update button styles
+                };
+            });
+        };
+
+        const renderBrawlerClasses = () => {
+            let classesHtml = '';
+            for (const className in brawlerClassesData) {
+                const data = brawlerClassesData[className];
+                let brawlersListHtml = '';
+                data.brawlers.forEach(brawlerName => {
+                    const brawler = allBrawlersData.find(b => b.name === brawlerName);
+                    if (brawler) {
+                        brawlersListHtml += `
+                            <li class="flex items-center mb-2 last:mb-0">
+                                <button data-brawler-name="${brawler.name}" class="brawler-detail-button flex items-center p-2 rounded-lg hover:bg-zinc-700 transition duration-200 w-full text-left">
+                                    <img src="${brawler.icon}" alt="${brawler.name}" class="w-8 h-8 rounded-full mr-2 object-cover border border-purple-400 shadow-md" />
+                                    <span class="text-md text-[#bbbbbb] font-medium">${brawler.name}</span>
+                                </button>
+                            </li>
+                        `;
+                    }
+                });
+
+                classesHtml += `
+                    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105">
+                        <h3 class="text-2xl font-semibold mb-4 text-white flex items-center">
+                            <span class="mr-2 text-3xl">${data.emoji}</span> ${className}
+                        </h3>
+                        <ul class="list-none p-0">
+                            ${brawlersListHtml}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            contentArea.innerHTML = `
+                <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
+                    <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Classi dei Brawler</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${classesHtml}
+                    </div>
+                </div>
+            `;
+            contentArea.querySelectorAll('.brawler-detail-button').forEach(button => {
+                button.onclick = (event) => navigate('brawlerDetail', event.currentTarget.dataset.brawlerName);
+            });
+        };
+
+        const renderBrawlerDescription = () => {
+            let brawlersHtml = '';
+            allBrawlersData.forEach(brawler => {
+                brawlersHtml += `
+                    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105">
+                        <div class="flex items-center mb-4">
+                            <img src="${brawler.icon}" alt="${brawler.name}" class="w-16 h-16 rounded-full mr-4 object-cover border border-purple-400 shadow-md" />
+                            <div>
+                                <h3 class="text-3xl font-semibold text-white">${brawler.name}</h3>
+                                <p class="text-lg text-[#bbbbbb]">Rarità: <span class="font-medium">${brawler.rarity}</span></p>
+                                <p class="text-lg text-[#bbbbbb]">Ruolo: <span class="font-medium">${brawler.role}</span></p>
+                            </div>
+                        </div>
+                        <p class="text-base text-[#bbbbbb] mb-4">${brawler.description}</p>
+                        <button data-brawler-name="${brawler.name}" class="brawler-detail-button mt-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-400 focus:ring-opacity-50 text-lg w-full">
+                            Vedi Dettagli
+                        </button>
+                    </div>
+                `;
+            });
+
+            contentArea.innerHTML = `
+                <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
+                    <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Descrizione Dettagliata dei Brawler</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${brawlersHtml}
+                    </div>
+                </div>
+            `;
+            contentArea.querySelectorAll('.brawler-detail-button').forEach(button => {
+                button.onclick = (event) => navigate('brawlerDetail', event.currentTarget.dataset.brawlerName);
+            });
+        };
+
+        const renderBrawlerDetail = () => {
+            if (!selectedBrawler) {
+                contentArea.innerHTML = `
+                    <div class="flex flex-col items-center justify-center min-h-screen p-6 bg-[rgba(30,30,30,1)] text-white rounded-lg shadow-xl m-4">
+                        <h2 class="text-4xl font-bold mb-6 text-yellow-300">Brawler non trovato!</h2>
+                        <p class="text-lg text-[#bbbbbb] mb-8">Si prega di selezionare un brawler valido.</p>
+                        <button id="back-from-detail" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition duration-300 hover:scale-105">
+                            Torna Indietro
+                        </button>
+                    </div>
+                `;
+                document.getElementById('back-from-detail').onclick = () => navigate('brawlerDescription');
+                return;
+            }
+
+            let gadgetsHtml = selectedBrawler.stats.gadgets.length > 0 ?
+                `<ul class="list-disc list-inside ml-4">
+                    ${selectedBrawler.stats.gadgets.map(g => `
+                        <li class="mb-2">
+                            <p class="text-lg text-[#bbbbbb] font-medium text-white">${g.name}:</p>
+                            <p class="text-base text-[#bbbbbb]">${g.description}</p>
+                        </li>
+                    `).join('')}
+                </ul>` : `<p class="text-lg text-[#bbbbbb]">Nessun gadget disponibile.</p>`;
+
+            let starPowersHtml = selectedBrawler.stats.starPowers.length > 0 ?
+                `<ul class="list-disc list-inside ml-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${selectedBrawler.stats.starPowers.map(sp => `
+                        <li class="mb-2">
+                            <p class="text-lg text-[#bbbbbb] font-medium text-white">${sp.name}:</p>
+                            <p class="text-base text-[#bbbbbb]">${sp.description}</p>
+                        </li>
+                    `).join('')}
+                </ul>` : `<p class="text-lg text-[#bbbbbb]">Nessuna Star Power disponibile.</p>`;
+
+            let tipsHtml = selectedBrawler.tips.length > 0 ?
+                `<ul class="list-disc list-inside ml-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${selectedBrawler.tips.map(tip => `
+                        <li class="text-lg text-[#bbbbbb] mb-2 last:mb-0">${tip}</li>
+                    `).join('')}
+                </ul>` : `<p class="text-lg text-[#bbbbbb]">Nessun consiglio disponibile.</p>`;
+
+
+            contentArea.innerHTML = `
+                <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
+                    <button id="back-from-detail" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full shadow-md transform transition duration-200 hover:scale-105 mb-6 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Torna Indietro
+                    </button>
+
+                    <div class="flex flex-col md:flex-row items-center md:items-start mb-8 bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700">
+                        <img src="${selectedBrawler.icon}" alt="${selectedBrawler.name}" class="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-yellow-400 mb-4 md:mb-0 md:mr-8 object-cover shadow-lg" />
+                        <div class="text-center md:text-left">
+                            <h2 class="text-5xl font-extrabold text-white mb-2">${selectedBrawler.name}</h2>
+                            <p class="text-xl text-[#bbbbbb] mb-1">Rarità: <span class="font-semibold text-white">${selectedBrawler.rarity}</span></p>
+                            <p class="text-xl text-[#bbbbbb]">Ruolo: <span class="font-semibold text-white">${selectedBrawler.role}</span></p>
+                            <p class="text-md text-[#bbbbbb] mt-4 max-w-xl">${selectedBrawler.description}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700">
+                            <h3 class="text-2xl font-bold text-white mb-4">Statistiche Base</h3>
+                            <p class="text-lg text-[#bbbbbb] mb-2">HP: <span class="font-medium text-white">${selectedBrawler.stats.hp}</span></p>
+                            <p class="text-lg text-[#bbbbbb] mb-2">Attacco: <span class="font-medium text-white">${selectedBrawler.stats.attack}</span></p>
+                            <p class="text-lg text-[#bbbbbb] mb-2">Danno Attacco: <span class="font-medium text-white">${selectedBrawler.stats.attackDamage}</span></p>
+                            <p class="text-lg text-[#bbbbbb] mb-2">Super: <span class="font-medium text-white">${selectedBrawler.stats.super}</span></p>
+                            <p class="text-lg text-[#bbbbbb]">Danno Super: <span class="font-medium text-white">${selectedBrawler.stats.superDamage || selectedBrawler.stats.superHealing || "N/A"}</span></p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700">
+                            <h3 class="text-2xl font-bold text-white mb-4">Gadget</h3>
+                            ${gadgetsHtml}
+                        </div>
+
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 lg:col-span-2">
+                            <h3 class="text-2xl font-bold text-white mb-4">Star Power</h3>
+                            ${starPowersHtml}
+                        </div>
+
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 lg:col-span-2">
+                            <h3 class="text-2xl font-bold text-white mb-4">Consigli per l'Uso</h3>
+                            ${tipsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('back-from-detail').onclick = () => navigate('brawlerDescription');
+        };
+
+        const renderAboutSection = () => {
+            contentArea.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-6 bg-[rgba(30,30,30,1)] text-white rounded-lg shadow-xl m-4">
+                    <h2 class="text-4xl font-bold mb-6 text-yellow-300 text-center">Informazioni su questa App</h2>
+                    <p class="text-lg md:text-xl text-[#bbbbbb] mb-8 text-center max-w-2xl">
+                        Questa è un'applicazione personale creata per esplorare e organizzare informazioni sul gioco Brawl Stars.
+                        Spero ti sia utile per scoprire dettagli sui brawler, le mappe e le loro sinergie.
+                    </p>
+                    <p class="text-md text-gray-400 text-center">
+                        Realizzato con HTML, CSS (Tailwind CSS) e JavaScript.
+                    </p>
+                </div>
+            `;
+        };
+
+        // Funzione per renderizzare la sezione corrente
+        const renderSection = () => {
+            switch (activeSection) {
+                case 'home':
+                    renderHomeSection();
+                    break;
+                case 'mapsAndBrawlers':
+                    renderMapsAndBestBrawlers();
+                    break;
+                case 'brawlerClasses':
+                    renderBrawlerClasses();
+                    break;
+                case 'brawlerDescription':
+                    renderBrawlerDescription();
+                    break;
+                case 'brawlerDetail':
+                    renderBrawlerDetail();
+                    break;
+                case 'about':
+                    renderAboutSection();
+                    break;
+                default:
+                    renderHomeSection();
+            }
+        };
+
+        // --- Event Listeners Globali per la Navigazione ---
+        document.addEventListener('DOMContentLoaded', () => {
+            navButtons['home'].onclick = () => navigate('home');
+            navButtons['mapsAndBrawlers'].onclick = () => navigate('mapsAndBrawlers');
+            navButtons['classes'].onclick = () => navigate('brawlerClasses');
+            navButtons['description'].onclick = () => navigate('brawlerDescription');
+            navButtons['about'].onclick = () => navigate('about');
+
+            // Renderizza la sezione iniziale
+            renderSection();
+            updateNavButtonStyles(); // Aggiorna gli stili iniziali
+        });
+    </script>
+
+</body>
+</html>
