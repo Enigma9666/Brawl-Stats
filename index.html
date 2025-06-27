@@ -14,13 +14,13 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            background-color: rgba(30, 30, 30, 1); /* Sfondo principale */
-            color: white; /* Colore testo predefinito */
+            background-color: rgba(30, 30, 30, 1); /* Main background */
+            color: white; /* Default text color */
         }
         .text-inter {
             font-family: 'Inter', sans-serif;
         }
-        /* Animazioni semplici per le sezioni */
+        /* Simple section animations */
         @keyframes fade-in-down {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -34,8 +34,21 @@
         }
         .animate-fade-in-up {
             animation: fade-in-up 0.8s ease-out forwards;
-            animation-delay: 0.2s; /* Ritardo per un effetto a cascata */
+            animation-delay: 0.2s; /* Cascade effect delay */
         }
+        /* Styles for the map modal */
+        .map-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        /* Updated rarity colors */
+        .rarity-common { color: #FFFFFF; border-color: #FFFFFF; } /* White */
+        .rarity-rare { color: #2ecc71; border-color: #2ecc71; } /* Green */
+        .rarity-super-rare { color: #3498db; border-color: #3498db; } /* Blue */
+        .rarity-epic { color: #9b59b6; border-color: #9b59b6; } /* Purple */
+        .rarity-mythic { color: #e74c3c; border-color: #e74c3c; } /* Red */
+        .rarity-legendary { color: #f1c40f; border-color: #f1c40f; } /* Yellow */
+        .rarity-cromatico { color: #FF007F; border-color: #FF007F; } /* Magenta/Pink for Chromatic */
     </style>
 </head>
 <body class="min-h-screen">
@@ -53,8 +66,8 @@
                 <button id="classes-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
                     Classi Brawler
                 </button>
-                <button id="description-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
-                    Descrizioni
+                <button id="brawlers-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
+                    Brawlers
                 </button>
                 <button id="about-nav-button" class="text-white hover:text-yellow-300 px-4 py-2 rounded-md text-lg font-medium transition duration-300">
                     Info
@@ -66,283 +79,170 @@
     <!-- Main Content Area -->
     <main id="content-area" class="container mx-auto p-4"></main>
 
+    <!-- Modal for larger map view -->
+    <div id="map-modal" class="fixed inset-0 map-modal-overlay flex items-center justify-center z-[100] hidden">
+        <div class="relative bg-zinc-900 p-4 rounded-xl shadow-lg border border-zinc-700 max-w-4xl max-h-full overflow-auto">
+            <button id="close-map-modal" class="absolute top-2 right-2 text-white text-3xl font-bold hover:text-red-500 focus:outline-none">&times;</button>
+            <img id="modal-map-image" src="" alt="Mappa Dettagliata" class="w-full h-auto rounded-lg">
+            <p id="modal-map-name" class="text-white text-xl mt-4 text-center"></p>
+        </div>
+    </div>
+
     <script>
-        // Funzione per generare URL di immagini placeholder con testo e colori specifici
+        // Function to generate placeholder image URLs with specific text and colors
         const getPlaceholderImage = (width, height, bgColor, textColor, text) => {
             return `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodeURIComponent(text)}`;
         };
 
-        // Dati dei brawler espansi con icone e statistiche dettagliate
-        const allBrawlersData = [
-            {
-                name: "Shelly",
-                description: "Shelly è un brawler comune che infligge ingenti danni con il suo super, distruggendo muri e eliminando gruppi di nemici.",
-                rarity: "Comune",
-                role: "Assaltatore",
-                icon: getPlaceholderImage(50, 50, "E91E63", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 5300,
-                    attack: "Colpo di Fucile",
-                    attackDamage: 300,
-                    super: "Super Shotgun",
-                    superDamage: 400,
-                    gadgets: [
-                        { name: "Dash", description: "Shelly scatta in avanti di una breve distanza." },
-                        { name: "Scatto Tattico", description: "Shelly rallenta i nemici con il suo prossimo attacco." }
-                    ],
-                    starPowers: [
-                        { name: "Conchiglia d'Acciaio", description: "Shelly ottiene uno scudo che riduce i danni quando ha poca salute." },
-                        { name: "Raffica Letale", description: "Il Super di Shelly rallenta i nemici per 3 secondi." }
-                    ]
-                },
-                tips: ["Usa il suo super per distruggere ostacoli e sorprendere i nemici.", "Ottima negli scontri ravvicinati.", "Può facilmente eliminare brawler con poca salute da vicino."]
-            },
-            {
-                name: "Colt",
-                description: "Colt spara proiettili a lungo raggio che possono essere difficili da schivare. Il suo super spara una raffica di proiettili che distruggono tutto.",
-                rarity: "Comune",
-                role: "Assaltatore",
-                icon: getPlaceholderImage(50, 50, "007BFF", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 4000,
-                    attack: "Doppia Raffica",
-                    attackDamage: 360,
-                    super: "Proiettili D'Acciaio",
-                    superDamage: 420,
-                    gadgets: [
-                        { name: "Caricatore Veloce", description: "Ricarica istantaneamente 2 munizioni." },
-                        { name: "Ricerca Proiettili", description: "Il prossimo attacco di Colt si muove più velocemente e ha più gittata." }
-                    ],
-                    starPowers: [
-                        { name: "Stivali Leggeri", description: "La velocità di movimento di Colt aumenta del 10%." },
-                        { name: "Colpo Magico", description: "I proiettili di Colt volano più lontano." }
-                    ]
-                },
-                tips: ["Mantiene la distanza e mira bene.", "Il super può essere usato per controllare le aree o distruggere coperture.", "Eccellente nel poke e nel finire i nemici in fuga."]
-            },
-            {
-                name: "Poco",
-                description: "Poco è un brawler di supporto che cura i suoi alleati e danneggia i nemici con le sue note musicali.",
-                rarity: "Raro",
-                role: "Supporto",
-                icon: getPlaceholderImage(50, 50, "FFEB3B", "000000", "BRAWLER_FACE"),
-                stats: {
-                    hp: 6000,
-                    attack: "Potere della Musica",
-                    attackDamage: 700,
-                    super: "Encore",
-                    superHealing: 2940,
-                    gadgets: [
-                        { name: "Accordatura Improvvisata", description: "Poco e gli alleati vicini curano 500 salute al secondo per 5 secondi." },
-                        { name: "Accordatura Tonica", description: "Il prossimo attacco di Poco cura gli alleati invece di danneggiare i nemici." }
-                    ],
-                    starPowers: [
-                        { name: "Maledizione", description: "L'attacco di Poco danneggia i nemici attraverso gli ostacoli." },
-                        { name: "Guarigione Musicale", description: "Il super di Poco cura anche lui stesso." }
-                    ]
-                },
-                tips: ["Rimani vicino ai tuoi alleati per curarli.", "Il suo super cura una vasta area e può salvare la tua squadra.", "Non sottovalutare i suoi danni ad area."]
-            },
-            {
-                name: "Leon",
-                description: "Leon è un brawler leggendario che può diventare invisibile per sorprendere i nemici e infliggere danni massicci da vicino.",
-                rarity: "Leggendario",
-                role: "Assassino",
-                icon: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 4400,
-                    attack: "Lame a Vortice",
-                    attackDamage: 580,
-                    super: "Bomba Fumo",
-                    superDuration: "6 sec",
-                    gadgets: [
-                        { name: "Miraggio", description: "Crea un clone illusorio di Leon per confondere i nemici." },
-                        { name: "Lecca-Lecca Illusionista", description: "Leon e gli alleati vicini diventano invisibili in una piccola area." }
-                    ],
-                    starPowers: [
-                        { name: "Fumo Velato", description: "La velocità di movimento di Leon aumenta del 24% quando è invisibile." },
-                        { name: "Ombra Infernale", description: "Quando Leon ha poca salute, spara più lame." }
-                    ]
-                },
-                tips: ["Usa l'invisibilità per avvicinarti ai nemici inosservato.", "Il suo attacco è più forte da vicino.", "Ottimo per il 'clutch' nelle fasi finali della partita."]
-            },
-            {
-                name: "Spike",
-                description: "Spike è un brawler leggendario che lancia cactus esplosivi che si dividono in spine. Il suo super rallenta e danneggia i nemici.",
-                rarity: "Leggendario",
-                role: "Cecchino",
-                icon: getPlaceholderImage(50, 50, "4CAF50", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 3400,
-                    attack: "Cactus Acuminato",
-                    attackDamage: 520,
-                    super: "Bomba Spinoso",
-                    superDamage: 100,
-                    gadgets: [
-                        { name: "Granata di Spine", description: "Spike lancia 3 granate di spine che rimbalzano sui muri." },
-                        { name: "Cactus Spinato", description: "Spike lascia una trappola che rallenta e danneggia i nemici." }
-                    ],
-                    starPowers: [
-                        { name: "Ghiaccio al Limone", description: "Il super di Spike cura lui stesso per 800 salute al secondo quando è nella sua area." },
-                        { name: "Puntura", description: "L'attacco di Spike rallenta i nemici colpiti." }
-                    ]
-                },
-                tips: ["Sfrutta l'effetto ad area del suo attacco.", "Il super è ottimo per bloccare le vie di fuga o controllare obiettivi.", "Eccelle contro brawler con poca mobilità."]
-            },
-            {
-                name: "Mortis",
-                description: "Mortis è un brawler mitico che si muove rapidamente con i suoi scatti, rendendolo difficile da colpire. Eccelle nell'eliminare brawler a basso HP.",
-                rarity: "Mitico",
-                role: "Assassino",
-                icon: getPlaceholderImage(50, 50, "7B1FA2", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 5300,
-                    attack: "Pala Balenante",
-                    attackDamage: 900,
-                    super: "Assalto Sanguinario",
-                    superHealing: 1000,
-                    gadgets: [
-                        { name: "Giro del Terrore", description: "Mortis effettua uno scatto extra che infligge 1300 danni ai nemici vicini." },
-                        { name: "Pala Veloce", description: "Mortis carica il suo attacco di base per un colpo più potente." }
-                    ],
-                    starPowers: [
-                        { name: "Raccolta di Anime", description: "Quando Mortis elimina un brawler, recupera 1800 salute." },
-                        { name: "Scatto Serale", description: "La velocità di ricarica di Mortis è aumentata del 15%." }
-                    ]
-                },
-                tips: ["Usalo per cacciare brawler deboli o per fuggire.", "Il suo super ti permette di recuperare salute dai nemici.", "Richiede pratica per essere padroneggiato."]
-            },
-            {
-                name: "Crow",
-                description: "Crow è un brawler leggendario che lancia tre pugnali avvelenati, infliggendo danni nel tempo. Il suo super gli permette di saltare e lanciare un'esplosione di pugnali.",
-                rarity: "Leggendario",
-                role: "Assassino",
-                icon: getPlaceholderImage(50, 50, "607D8B", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 3600,
-                    attack: "Dagger Toss",
-                    attackDamage: 400,
-                    super: "Swoop",
-                    superDamage: 400,
-                    gadgets: [
-                        { name: "Fiala Tossica", description: "Crow lancia un veleno più potente che rallenta i nemici." },
-                        { name: "Scudo Piumato", description: "Crow ottiene uno scudo che riduce tutti i danni subiti del 60% per 3 secondi." }
-                    ],
-                    starPowers: [
-                        { name: "Tossicità", description: "I brawler avvelenati infliggono il 20% in meno di danni." },
-                        { name: "Morso Letale", description: "Il veleno di Crow infligge 120 danni extra per ogni pugnale." }
-                    ]
-                },
-                tips: ["Metti pressione sui nemici con il veleno.", "Usa il super per entrare e uscire rapidamente dagli scontri.", "Ottimo per tenere sotto controllo i brawler avversari."]
-            },
-            {
-                name: "El Primo",
-                description: "El Primo è un brawler peso massimo con tanta salute e pugni potenti. Il suo super gli permette di saltare e schiantarsi sui nemici.",
-                rarity: "Raro",
-                role: "Peso Massimo",
-                icon: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 8000,
-                    attack: "Fists of Fury",
-                    attackDamage: 360,
-                    super: "El Fuego!",
-                    superDamage: 1000,
-                    gadgets: [
-                        { name: "Suplex supplementare", description: "El Primo afferra il nemico più vicino e lo lancia dietro di sé." },
-                        { name: "Cintura da Wrestler", description: "El Primo subisce il 25% in meno di danni per 3 secondi." }
-                    ],
-                    starPowers: [
-                        { name: "Meteorite di Fuoco", description: "I nemici colpiti dal super di El Primo prendono fuoco per 4 secondi." },
-                        { name: "El Furia!", description: "La velocità di movimento di El Primo aumenta del 25% quando il suo super è pronto." }
-                    ]
-                },
-                tips: ["Carica il tuo super rapidamente attaccando.", "Usa il super per avvicinarti ai nemici o scappare.", "Molto forte negli scontri ravvicinati."]
-            },
-            {
-                name: "Frank",
-                description: "Frank è un brawler peso massimo che colpisce con un martello gigante, ma è vulnerabile mentre carica l'attacco. Il suo super stordisce i nemici.",
-                rarity: "Epico",
-                role: "Peso Massimo",
-                icon: getPlaceholderImage(50, 50, "795548", "FFFFFF", "BRAWLER_FACE"),
-                stats: {
-                    hp: 8400,
-                    attack: "Hammer Hit",
-                    attackDamage: 1200,
-                    super: "Stun Flick",
-                    superDuration: "3 sec",
-                    gadgets: [
-                        { name: "Cuffie Anti-rumore", description: "Frank diventa immune agli effetti di stordimento, rallentamento e respingimento per 2 secondi." },
-                        { name: "Vampirismo", description: "Frank assorbe il 25% dei danni che infligge come salute." }
-                    ],
-                    starPowers: [
-                        { name: "Spugna", description: "Frank ottiene il 1100 di salute extra." },
-                        { name: "Vendetta", description: "Frank infligge il 25% in più di danni quando è ferito." }
-                    ]
-                },
-                tips: ["Trova un buon momento per usare l'attacco e il super, dato che sei immobile.", "Il super è ottimo per interrompere i nemici o i loro super.", "Sfrutta i muri per proteggerti mentre attacchi."]
-            },
-            {
-                name: "Piper",
-                description: "Piper è un cecchino che infligge più danni quanto più è lontana dal bersaglio. Il suo super le permette di saltare in aria e lanciare granate.",
-                rarity: "Epico",
-                role: "Cecchino",
-                icon: getPlaceholderImage(50, 50, "F8BBD0", "000000", "BRAWLER_FACE"),
-                stats: {
-                    hp: 3600,
-                    attack: "Ombrello Preciso",
-                    attackDamage: 1520, // Max damage
-                    super: "Volo d'Amore",
-                    superDamage: 200,
-                    gadgets: [
-                        { name: "Spilla a Scatto", description: "Piper spara un proiettile che rallenta i nemici." },
-                        { name: "Spilla d'Addio", description: "Piper spara 4 proiettili che cercano i nemici più vicini." }
-                    ],
-                    starPowers: [
-                        { name: "Ambush", description: "Piper infligge 800 danni extra quando è nascosta nel cespuglio." },
-                        { name: "Trappola Furtiva", description: "Piper spara un proiettile che infligge 500 danni extra se colpisce un nemico nascosto." }
-                    ]
-                },
-                tips: ["Mantieni la distanza per massimizzare i danni.", "Usa il super per scappare da situazioni pericolose o per finire nemici.", "Ottima nelle mappe aperte."]
-            },
-            {
-                name: "Bea",
-                description: "Bea è un cecchino che spara proiettili lenti ma potenti. Se colpisce, il suo prossimo proiettile è potenziato.",
-                rarity: "Epico",
-                role: "Cecchino",
-                icon: getPlaceholderImage(50, 50, "FFC107", "000000", "BRAWLER_FACE"),
-                stats: {
-                    hp: 3600,
-                    attack: "Fucile Aculeo",
-                    attackDamage: 800,
-                    super: "Sciame di Api",
-                    superDamage: 100,
-                    gadgets: [
-                        { name: "Miele Appiccicoso", description: "Bea lascia cadere una pozza di miele che rallenta i nemici." },
-                        { name: "Stinger Super", description: "Bea lancia un proiettile che infligge il 100% in più di danni." }
-                    ],
-                    starPowers: [
-                        { name: "Sciame Impetuoso", description: "Bea ottiene uno scudo che riduce i danni quando ha poca salute." },
-                        { name: "Vola Come un'Ape", description: "La velocità di ricarica del super di Bea aumenta del 10%." }
-                    ]
-                },
-                tips: ["Colpisci il primo proiettile per potenziare il successivo.", "Il suo super è ottimo per rallentare più nemici.", "Eccellente nel poke e nel controllo delle corsie."]
+        // Mapping of rarities to hexadecimal colors for text and border
+        const rarityColors = {
+            "Comune": { text: "#FFFFFF", border: "#FFFFFF" },       // White
+            "Raro": { text: "#2ecc71", border: "#2ecc71" },         // Green
+            "Super Raro": { text: "#3498db", border: "#3498db" },   // Blue
+            "Epico": { text: "#9b59b6", border: "#9b59b6" },        // Purple
+            "Mitico": { text: "#e74c3c", border: "#e74c3c" },       // Red
+            "Leggendario": { text: "#f1c40f", border: "#f1c40f" },  // Yellow
+            "Cromatico": { text: "#FF007F", border: "#FF007F" }     // Magenta/Pink
+        };
+
+        // Function to get the CSS class based on rarity
+        const getRarityClass = (rarity) => {
+            if (rarityColors[rarity]) {
+                // Replaces spaces with hyphens and converts to lowercase for CSS class
+                return `rarity-${rarity.toLowerCase().replace(/\s/g, '-')}`;
             }
+            return ''; // No class if rarity is not mapped
+        };
+        // Function to get the rarity text color
+        const getRarityTextColor = (rarity) => {
+            return rarityColors[rarity] ? rarityColors[rarity].text : '#bbbbbb'; // Default light gray
+        };
+        // Function to get the rarity border color
+        const getRarityBorderColor = (rarity) => {
+            return rarityColors[rarity] ? rarityColors[rarity].border : 'transparent';
+        };
+
+        // Brawler data expanded with icons and detailed stats
+        const allBrawlersData = [
+            // Rare (UPDATED)
+            { name: "Shelly", description: "A champion with a deadly close-range shotgun.", rarity: "Raro", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "E91E63", "FFFFFF", "SHELLY_FACE"), stats: { hp: 5300, attack: "Colpo di Fucile", attackDamage: 300, super: "Super Shotgun", superDamage: 400, gadgets: [{ name: "Dash", description: "Quick dash." }], starPowers: [{ name: "Conchiglia d'Acciaio", description: "Shield for low HP." }] }, tips: ["Use super to destroy walls."] },
+            { name: "Nita", description: "Summons a bear to fight alongside her.", rarity: "Raro", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "B22222", "FFFFFF", "NITA_FACE"), stats: { hp: 5000, attack: "Onda d'Urto", attackDamage: 800, super: "Orso Bruce", superDamage: 120, gadgets: [{ name: "Metti Zampa", description: "Bear stuns enemies." }], starPowers: [{ name: "Orso Curativo", description: "Bear heals Nita." }] }, tips: ["Use bear for pressure."] },
+            { name: "Colt", description: "A fast gunslinger with long-range bullets.", rarity: "Raro", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "007BFF", "FFFFFF", "COLT_FACE"), stats: { hp: 4000, attack: "Doppia Raffica", attackDamage: 360, super: "Proiettili D'Acciaio", superDamage: 420, gadgets: [{ name: "Caricatore Veloce", description: "Instant reload." }], starPowers: [{ name: "Stivali Leggeri", description: "Increased speed." }] }, tips: ["Aim precisely."] },
+            { name: "Bull", description: "A tough tank with a shotgun and a devastating charge.", rarity: "Raro", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "8B0000", "FFFFFF", "BULL_FACE"), stats: { hp: 7800, attack: "Fucile a Pompa", attackDamage: 400, super: "Bulldozer", superDamage: 800, gadgets: [{ name: "Ricarica", description: "Recovers health." }], starPowers: [{ name: "Berserker", description: "Increased damage." }] }, tips: ["Charge to close distances."] },
+            { name: "Brock", description: "A rocket expert with long-range attacks and an explosive super.", rarity: "Raro", role: "Cecchino", icon: getPlaceholderImage(50, 50, "FF8C00", "FFFFFF", "BROCK_FACE"), stats: { hp: 3600, attack: "Razzi a Pioggia", attackDamage: 1100, super: "Pioggia di Razzi", superDamage: 500, gadgets: [{ name: "Turbo Razzo", description: "Fast dash." }], starPowers: [{ name: "Danno Incendiario", description: "Fire on ground." }] }, tips: ["Exploit super's area."] },
+            { name: "El Primo", description: "The masked wrestler who jumps into melee.", rarity: "Raro", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "PRIMO_FACE"), stats: { hp: 8000, attack: "Pugni di Furia", attackDamage: 360, super: "El Fuego!", superDamage: 1000, gadgets: [{ name: "Suplex", description: "Throws enemies." }], starPowers: [{ name: "Meteorite di Fuoco", description: "Super ignites." }] }, tips: ["Aggress from close range."] },
+            { name: "Bombardino", description: "A miner who throws dynamite with large area damage.", rarity: "Raro", role: "Artigliere", icon: getPlaceholderImage(50, 50, "FFD700", "000000", "BOMBARDINO_FACE"), stats: { hp: 3600, attack: "Barili di Dinamite", attackDamage: 900, super: "Mina Vagante", superDamage: 1800, gadgets: [{ name: "Mina Stordente", description: "Mine explodes and stuns." }], starPowers: [{ name: "Mine Veloci", description: "Faster mines." }] }, tips: ["Attack from behind walls."] },
+            { name: "Poco", description: "The mariachi who heals and damages with music.", rarity: "Raro", role: "Supporto", icon: getPlaceholderImage(50, 50, "FFEB3B", "000000", "POCO_FACE"), stats: { hp: 6000, attack: "Potere della Musica", attackDamage: 700, super: "Encore", superHealing: 2940, gadgets: [{ name: "Accordatura Improvvisata", description: "Area heal." }], starPowers: [{ name: "Maledizione", description: "Damage through obstacles." }] }, tips: ["Heal your allies."] },
+            { name: "Rosa", description: "A boxing botanist who becomes invincible with her super.", rarity: "Raro", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "228B22", "FFFFFF", "ROSA_FACE"), stats: { hp: 8000, attack: "Pugni di Vita", attackDamage: 480, super: "Pelle Dura", superDamageReduction: "70%", gadgets: [{ name: "Piante Spinose", description: "Protective bushes." }], starPowers: [{ name: "Fiori Curativi", description: "Heals in bushes." }] }, tips: ["Activate super to attack."] },
+
+            // Super Rare
+            { name: "Jessie", description: "A scientist who deploys a turret that shoots enemies.", rarity: "Super Raro", role: "Controllore", icon: getPlaceholderImage(50, 50, "FF9800", "FFFFFF", "JESSIE_FACE"), stats: { hp: 4800, attack: "Shock Ricochet", attackDamage: 1060, super: "Torretta Scrappy", superDamage: 280, gadgets: [{ name: "Molla a Molla", description: "Turret shoots faster." }], starPowers: [{ name: "Ricarica", description: "Turret heals itself." }] }, tips: ["Position turret strategically."] },
+            { name: "Dynamike", description: "An explosives expert who throws dynamite barrels.", rarity: "Super Raro", role: "Artigliere", icon: getPlaceholderImage(50, 50, "FFC107", "000000", "DYNAMIKE_FACE"), stats: { hp: 3600, attack: "Attacco con Dinamite", attackDamage: 800, super: "Big Bomb", superDamage: 2000, gadgets: [{ name: "Salto Tattico", description: "Dynamike jumps." }], starPowers: [{ name: "Dyna-Jump", description: "Jumps over obstacles." }] }, tips: ["Predict enemy movements."] },
+            { name: "Tick", description: "An explosive robot that throws mines and blows up its head.", rarity: "Super Raro", role: "Artigliere", icon: getPlaceholderImage(50, 50, "A9A9A9", "FFFFFF", "TICK_FACE"), stats: { hp: 3000, attack: "Mini Mine", attackDamage: 700, super: "Testa Pazza", superDamage: 1000, gadgets: [{ name: "Fuga d'Emergenza", description: "Dash and heal." }], starPowers: [{ name: "Fuoco Rapido", description: "Faster mines." }] }, tips: ["Area zone for enemies."] },
+            { name: "8-Bit", description: "A gaming machine with laser attacks and a boosting turret.", rarity: "Super Raro", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "8A2BE2", "FFFFFF", "8BIT_FACE"), stats: { hp: 6000, attack: "Laser Blaster", attackDamage: 380, super: "Caricatore Amplificatore", superBoost: "50%", gadgets: [{ name: "Warp", description: "Teleports to turret." }], starPowers: [{ name: "Carica Potenziata", description: "Bonus speed." }] }, tips: ["Position turret for team."] },
+            { name: "Stecca", description: "A robot that bounces shots off walls.", rarity: "Super Raro", role: "Cecchino", icon: getPlaceholderImage(50, 50, "6A5ACD", "FFFFFF", "STECCA_FACE"), stats: { hp: 3800, attack: "Palla Rimbalzante", attackDamage: 500, super: "Furia Rimbalzante", superDamage: 300, gadgets: [{ name: "Ricarica Veloce", description: "Reload ammo." }], starPowers: [{ name: "Supersballo", description: "Bouncing shots empower." }] }, tips: ["Exploit walls."] },
+            { name: "Darryl", description: "A pirate robot with a super that rolls and damages.", rarity: "Super Raro", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "4682B4", "FFFFFF", "DARRYL_FACE"), stats: { hp: 6000, attack: "Doppi Spari", attackDamage: 400, super: "Rotolamento", superDamage: 600, gadgets: [{ name: "Rotolamento Curativo", description: "Heals during super." }], starPowers: [{ name: "Bucaniere", description: "Shield for super." }] }, tips: ["Use to engage."] },
+            { name: "Penny", description: "A pirate who shoots gold sacks and a hidden cannon.", rarity: "Super Raro", role: "Artigliere", icon: getPlaceholderImage(50, 50, "FFDEAD", "000000", "PENNY_FACE"), stats: { hp: 4200, attack: "Sacchi d'Oro", attackDamage: 900, super: "Mortaio da Pirata", superDamage: 1200, gadgets: [{ name: "Mina di Saccheggio", description: "Creates traps." }], starPowers: [{ name: "Palla Infuocata", description: "Mortar ignites." }] }, tips: ["Position mortar far away."] },
+            { name: "Carl", description: "A miner who throws his pickaxe like a boomerang.", rarity: "Super Raro", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "D3D3D3", "000000", "CARL_FACE"), stats: { hp: 5000, attack: "Piccone Boomerang", attackDamage: 600, super: "Tornado", superDamage: 400, gadgets: [{ name: "Accelerazione", description: "Increases speed." }], starPowers: [{ name: "Lancio Rapido", description: "Pickaxe returns faster." }] }, tips: ["Exploit pickaxe return."] },
+            { name: "Jacky", description: "A miner with a jackhammer that pulls enemies in.", rarity: "Super Raro", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "808080", "FFFFFF", "JACKY_FACE"), stats: { hp: 7000, attack: "Sisma", attackDamage: 1200, super: "Trapano Attira-Brawler", superDamage: 200, gadgets: [{ name: "Aria Condizionata", description: "Temporary shield." }], starPowers: [{ name: "Contraccolpo", description: "Additional damage." }] }, tips: ["Pull enemies to damage them."] },
+            { name: "Gus", description: "A ghost who summons a spectral balloon and heals allies.", rarity: "Super Raro", role: "Supporto", icon: getPlaceholderImage(50, 50, "B0C4DE", "000000", "GUS_FACE"), stats: { hp: 4000, attack: "Palloncino Spettrale", attackDamage: 600, super: "Anima Gemella", superHealing: 2000, gadgets: [{ name: "Fantasma Amico", description: "Heals nearby allies." }], starPowers: [{ name: "Scudo Spirituale", description: "Shield for allies." }] }, tips: ["Stay close to your allies."] },
+
+            // Epic
+            { name: "Bo", description: "An archer who shoots explosive arrows and places invisible mines.", rarity: "Epico", role: "Controllore", icon: getPlaceholderImage(50, 50, "A0522D", "FFFFFF", "BO_FACE"), stats: { hp: 6000, attack: "Frecce Esplosive", attackDamage: 800, super: "Trappola Caccia", superDamage: 500, gadgets: [{ name: "Occhio di Falco", description: "Mines reveal enemies." }], starPowers: [{ name: "Aquila Cacciatrice", description: "Vision in bushes." }] }, tips: ["Place mines for control."] },
+            { name: "Emz", description: "A zombie influencer who sprays a toxic cloud.", rarity: "Epico", role: "Controllore", icon: getPlaceholderImage(50, 50, "9370DB", "FFFFFF", "EMZ_FACE"), stats: { hp: 5000, attack: "Nuvola di Spray", attackDamage: 400, super: "Karma", superDamage: 200, gadgets: [{ name: "Hype", description: "Heals every second." }], starPowers: [{ name: "Onda di Shock", description: "Super slows." }] }, tips: ["Maintain distance."] },
+            { name: "Stu", description: "An acrobatic robot that dashes quickly and leaves fiery trails.", rarity: "Epico", role: "Assassino", icon: getPlaceholderImage(50, 50, "000000", "FFD700", "STU_FACE"), stats: { hp: 4000, attack: "Un due tre GO!", attackDamage: 500, super: "Zero Frizione", superDamage: 200, gadgets: [{ name: "Nitro Boost", description: "Fast dash." }], starPowers: [{ name: "Brucia Tutto", description: "Super ignites." }] }, tips: ["Dash to charge super."] },
+            { name: "Piper", description: "An elegant sniper who deals more damage the further away she is.", rarity: "Epico", role: "Cecchino", icon: getPlaceholderImage(50, 50, "F8BBD0", "000000", "PIPER_FACE"), stats: { hp: 3600, attack: "Ombrello Preciso", attackDamage: 1520, super: "Volo d'Amore", superDamage: 200, gadgets: [{ name: "Spilla a Scatto", description: "Slows enemies." }], starPowers: [{ name: "Ambush", description: "Bonus damage from bushes." }] }, tips: ["Maintain maximum distance."] },
+            { name: "Pam", description: "A mechanic with a healing turret and area attacks.", rarity: "Epico", role: "Supporto", icon: getPlaceholderImage(50, 50, "CDDC39", "000000", "PAM_FACE"), stats: { hp: 8000, attack: "Raffica di Rottami", attackDamage: 300, super: "Torretta Medica", superHealing: 480, gadgets: [{ name: "Pulizia Medica", description: "Instant heal." }], starPowers: [{ name: "Saccheggio", description: "Heals with attacks." }] }, tips: ["Position turret behind cover."] },
+            { name: "Frank", description: "A slow but powerful tank that stuns enemies.", rarity: "Epico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "795548", "FFFFFF", "FRANK_FACE"), stats: { hp: 8400, attack: "Hammer Hit", attackDamage: 1200, super: "Stun Flick", superDuration: "3 sec", gadgets: [{ name: "Cuffie", description: "Immune to stun." }], starPowers: [{ name: "Spugna", description: "Extra HP." }] }, tips: ["Coordinate super."] },
+            { name: "Bibi", description: "A baseball batter with a bubble that knocks enemies back.", rarity: "Epico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "FF69B4", "FFFFFF", "BIBI_FACE"), stats: { hp: 5800, attack: "Home Run", attackDamage: 1300, super: "Bolla Rimbalzante", superDamage: 1000, gadgets: [{ name: "Gomito a Gomito", description: "Heals with attack." }], starPowers: [{ name: "Velocità Extra", description: "Bonus speed." }] }, tips: ["Use bubble to push."] },
+            { name: "Bea", description: "A sniper with a stinger that gets stronger after each hit.", rarity: "Epico", role: "Cecchino", icon: getPlaceholderImage(50, 50, "FFC107", "000000", "BEA_FACE"), stats: { hp: 3600, attack: "Fucile Aculeo", attackDamage: 800, super: "Sciame di Api", superDamage: 100, gadgets: [{ name: "Miele Appiccicoso", description: "Slows enemies." }], starPowers: [{ name: "Sciame Impetuoso", description: "Shield for low HP." }] }, tips: ["Exploit empowered shots."] },
+            { name: "Nani", description: "A robot with an eye that shoots controllable projectiles.", rarity: "Epico", role: "Cecchino", icon: getPlaceholderImage(50, 50, "8A2BE2", "FFFFFF", "NANI_FACE"), stats: { hp: 3400, attack: "Traguardo Perfetto", attackDamage: 700, super: "Controllo Remoto", superDamage: 1400, gadgets: [{ name: "Warp Blast", description: "Teleport." }], starPowers: [{ name: "Scudo Riflettente", description: "Reduced damage with super." }] }, tips: ["Use super for hidden enemies."] },
+            { name: "Edgar", description: "An emo who steals life with punches and charges super automatically.", rarity: "Epico", role: "Assassino", icon: getPlaceholderImage(50, 50, "4B0082", "FFFFFF", "EDGAR_FACE"), stats: { hp: 3800, attack: "Pugni Curativi", attackDamage: 600, super: "Salto Ombra", superDamage: 200, gadgets: [{ name: "Frutto Energizzante", description: "Instant heal." }], starPowers: [{ name: "Atterraggio Morbido", description: "Landing speed." }] }, tips: ["Jump on low HP brawlers."] },
+            { name: "Griff", description: "A cashier who throws coins and explosive banknotes.", rarity: "Epico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "DAA520", "FFFFFF", "GRIFF_FACE"), stats: { hp: 4200, attack: "Vincite Veloci", attackDamage: 300, super: "Rimborsi", superDamage: 1000, gadgets: [{ name: "Bonus Semplice", description: "Fast reload." }], starPowers: [{ name: "Moneta Forte", description: "Bonus damage." }] }, tips: ["Refunds to destroy walls."] },
+            { name: "Grom", description: "A playground guard who throws bombs and jumps with his super.", rarity: "Epico", role: "Artigliere", icon: getPlaceholderImage(50, 50, "8FBC8F", "FFFFFF", "GROM_FACE"), stats: { hp: 4000, attack: "Palla Bomba", attackDamage: 900, super: "Granata a Caduta", superDamage: 1500, gadgets: [{ name: "Bombe a Palla", description: "Three small bombs." }], starPowers: [{ name: "Attacco a Raffica", description: "Faster bombs." }] }, tips: ["Use bombs for zoning."] },
+            { name: "Bonnie", description: "A girl who fights on a cannon or on foot.", rarity: "Epico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "ADD8E6", "000000", "BONNIE_FACE"), stats: { hp: 5000, attack: "Colpo Cannone", attackDamage: 1000, super: "Salto dalla Bocca", superDamage: 800, gadgets: [{ name: "Fuoco Rapido", description: "Fast attacks." }], starPowers: [{ name: "Scarica Fredda", description: "Slows enemies." }] }, tips: ["Change form to adapt."] },
+            { name: "Gale", description: "An old man who blows snow and creates storms.", rarity: "Epico", role: "Controllore", icon: getPlaceholderImage(50, 50, "B0E0E6", "000000", "GALE_FACE"), stats: { hp: 4000, attack: "Ventata Fredda", attackDamage: 300, super: "Grande Tempesta di Neve", superDamage: 100, gadgets: [{ name: "Trampolino", description: "Jumps over obstacles." }], starPowers: [{ name: "Vento Favorevole", description: "Increases ally speed." }] }, tips: ["Use super to push."] },
+            { name: "Colette", description: "An obsessed brawler who deals damage based on enemy health.", rarity: "Epico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "FF1493", "FFFFFF", "COLETTE_FACE"), stats: { hp: 4000, attack: "Tassa sul Danno", attackDamage: "37% HP", super: "Ritorno di Fiamma", superDamage: 1000, gadgets: [{ name: "Ricatto", description: "Instant damage." }], starPowers: [{ name: "Ricorda la Tassa", description: "Heals on super." }] }, tips: ["Finish low health enemies."] },
+            { name: "Belle", description: "A sniper who shoots a propagating shot that marks enemies.", rarity: "Epico", role: "Cecchino", icon: getPlaceholderImage(50, 50, "FFA500", "FFFFFF", "BELLE_FACE"), stats: { hp: 3800, attack: "Colpo Elettrizzante", attackDamage: 1000, super: "Marchio di Vendetta", superDamage: 500, gadgets: [{ name: "Nido Elettrificato", description: "Creates traps." }], starPowers: [{ name: "Shock Rimbalzante", description: "Attacks bounce." }] }, tips: ["Mark tanks for the team."] },
+            { name: "Ash", description: "A trash can tank that gets stronger when taking damage.", rarity: "Epico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "696969", "FFFFFF", "ASH_FACE"), stats: { hp: 7000, attack: "Spazzata Furiosa", attackDamage: 800, super: "Spazzini Robot", superDamage: 400, gadgets: [{ name: "Ricarica Rapida", description: "Super reload." }], starPowers: [{ name: "Rabbia Scatenata", description: "Super lasts longer." }] }, tips: ["Rage for maximum damage."] },
+            { name: "Lola", description: "A movie star who shoots jewels and projects a shadow.", rarity: "Epico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "FFC0CB", "000000", "LOLA_FACE"), stats: { hp: 4000, attack: "Gioielli Scintillanti", attackDamage: 300, super: "Ombra Protettiva", superDamage: 200, gadgets: [{ name: "Occhio di Lince", description: "Shield for shadow." }], starPowers: [{ name: "Sguardo Affascinante", description: "Heals shadow." }] }, tips: ["Position shadow strategically."] },
+            { name: "Sam", description: "A tough boxer with robotic gauntlets that he can throw and retrieve.", rarity: "Epico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "A52A2A", "FFFFFF", "SAM_FACE"), stats: { hp: 7600, attack: "Guantoni Pesanti", attackDamage: 1100, super: "Guantoni Ricadenti", superDamage: 1000, gadgets: [{ name: "Aggancio", description: "Pulls enemies." }], starPowers: [{ name: "Guantoni Caricati", description: "Super reloads faster." }] }, tips: ["Retrieve gauntlets for super."] },
+            { name: "Mandy", description: "A candy queen who shoots gummy candies and a long-range sugar beam.", rarity: "Epico", role: "Cecchino", icon: getPlaceholderImage(50, 50, "FFB6C1", "000000", "MANDY_FACE"), stats: { hp: 3800, attack: "Caramella Gommosa", attackDamage: 900, super: "Raggio di Zucchero", superDamage: 300, gadgets: [{ name: "Mischia Dolciaria", description: "Slows enemies." }], starPowers: [{ name: "Dolce Vendetta", description: "Heals after super." }] }, tips: ["Exploit long-range beam."] },
+            { name: "Maisie", description: "An effects expert who launches accelerating projectiles.", rarity: "Epico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "BA55D3", "FFFFFF", "MAISIE_FACE"), stats: { hp: 4400, attack: "Proiettile Propulso", attackDamage: 900, super: "Esplosione Controllata", superDamage: 1200, gadgets: [{ name: "Fuga Drammatica", description: "Fast dash." }], starPowers: [{ name: "Effetto Sorpresa", description: "Super stuns." }] }, tips: ["Long-range shots for super."] },
+            { name: "Hank", description: "A fisherman who inflates a water balloon and releases it to deal damage.", rarity: "Epico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "87CEEB", "000000", "HANK_FACE"), stats: { hp: 6000, attack: "Palloncino d'Acqua", attackDamage: 800, super: "Bolla d'Aria", superDamage: 400, gadgets: [{ name: "Bolla Scudo", description: "Shield for balloon." }], starPowers: [{ name: "Soffio Forte", description: "Faster balloon." }] }, tips: ["Inflate balloon for max damage."] },
+            { name: "Pearl", description: "A robot chef who shoots cookies and has an oven that overheats.", rarity: "Epico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "F0F8FF", "000000", "PEARL_FACE"), stats: { hp: 5000, attack: "Biscotti Croccanti", attackDamage: 400, super: "Forno Ardente", superDamage: 1000, gadgets: [{ name: "Sfornata Veloce", description: "Fast attacks." }], starPowers: [{ name: "Calore Residuale", description: "Bonus damage for overheating." }] }, tips: ["Maximize overheating."] },
+            { name: "Larry & Lawrie", description: "Two police twins who throw grenades and deploy drones.", rarity: "Epico", role: "Controllore", icon: getPlaceholderImage(50, 50, "90EE90", "000000", "LARRY_LAWRIE_FACE"), stats: { hp: 4200, attack: "Granata Gemella", attackDamage: 600, super: "Droni di Pattuglia", superDamage: 200, gadgets: [{ name: "Sbarramento", description: "Rapid grenades." }], starPowers: [{ name: "Rafforzamento", description: "Drones heal." }] }, tips: ["Use drones for pressure."] },
+            { name: "Angelo", description: "An archer angel who shoots precise arrows and leaves a healing trail.", rarity: "Epico", role: "Supporto", icon: getPlaceholderImage(50, 50, "F0E68C", "000000", "ANGELO_FACE"), stats: { hp: 3600, attack: "Freccia Divina", attackDamage: 1000, super: "Scia Celestiale", superHealing: 300, gadgets: [{ name: "Volo Etereo", description: "Fast dash." }], starPowers: [{ name: "Cura Divina", description: "Trail heals more." }] }, tips: ["Exploit healing trail."] },
+            { name: "Berry", description: "A chef who throws explosive berries and creates a sticky area.", rarity: "Epico", role: "Artigliere", icon: getPlaceholderImage(50, 50, "FF6347", "FFFFFF", "BERRY_FACE"), stats: { hp: 4000, attack: "Lancio di Bacche", attackDamage: 700, super: "Area Appiccicosa", superDamage: 100, gadgets: [{ name: "Bomba Appiccicosa", description: "Bomb slows." }], starPowers: [{ name: "Crescita Rapida", description: "Larger berries." }] }, tips: ["Block escape routes."] },
+            { name: "Shade", description: "A shadow ninja who teleports and attacks with fast blades.", rarity: "Epico", role: "Assassino", icon: getPlaceholderImage(50, 50, "483D8B", "FFFFFF", "SHADE_FACE"), stats: { hp: 4000, attack: "Lama d'Ombra", attackDamage: 800, super: "Teletrasporto Ombra", superDamage: 0, gadgets: [{ name: "Confusione", description: "Creates a clone." }], starPowers: [{ name: "Ombra Letale", description: "Bonus damage after teleport." }] }, tips: ["Use teleport to surprise."] },
+            { name: "Meeple", description: "A builder who deploys blocks and walls and throws bolts.", rarity: "Epico", role: "Controllore", icon: getPlaceholderImage(50, 50, "8B4513", "FFFFFF", "MEEPLE_FACE"), stats: { hp: 5000, attack: "Lancio Bulloni", attackDamage: 600, super: "Mura Protettive", superHp: 2000, gadgets: [{ name: "Torretta Difensiva", description: "Deploys turret." }], starPowers: [{ name: "Baluardo", description: "Walls last longer." }] }, tips: ["Create cover for the team."] },
+
+            // Mythic
+            { name: "Mortis", description: "A fast assassin who dashes to deal damage.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "7B1FA2", "FFFFFF", "MORTIS_FACE"), stats: { hp: 5300, attack: "Pala Balenante", attackDamage: 900, super: "Assalto Sanguinario", superHealing: 1000, gadgets: [{ name: "Giro del Terrore", description: "Extra dash." }], starPowers: [{ name: "Raccolta di Anime", description: "Heals after KO." }] }, tips: ["Hunt weak brawlers."] },
+            { name: "Tara", description: "A mystic who summons a black hole and throws cards.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "300060", "FFFFFF", "TARA_FACE"), stats: { hp: 4800, attack: "Carte Ombra", attackDamage: 400, super: "Buco Nero", superDamage: 800, gadgets: [{ name: "Visione Mistica", description: "Reveals enemies." }], starPowers: [{ name: "Ombra Curativa", description: "Summons healing clone." }] }, tips: ["Use super to group enemies."] },
+            { name: "Gene", description: "A genie who launches a magic ball and pulls enemies towards him.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "FFD700", "000000", "GENE_FACE"), stats: { hp: 4400, attack: "Palla Magica", attackDamage: 1000, super: "Mano del Genio", superDamage: 0, gadgets: [{ name: "Lampada Magica", description: "Heals allies." }], starPowers: [{ name: "Soffio Curativo", description: "Heals nearby allies." }] }, tips: ["Pull dangerous enemies."] },
+            { name: "Max", description: "A speedster who shoots lasers and boosts allies' speed.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "00BFFF", "FFFFFF", "MAX_FACE"), stats: { hp: 4000, attack: "Raffica di Laser", attackDamage: 340, super: "Super Scarica", superBoost: "30%", gadgets: [{ name: "Fuga Rapida", description: "Fast dash." }], starPowers: [{ name: "Carica Rapida", description: "Super reloads faster." }] }, tips: ["Use super for positioning."] },
+            { name: "Mr. P", description: "A penguin who throws suitcases and deploys robotic porters.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "4169E1", "FFFFFF", "MRP_FACE"), stats: { hp: 4000, attack: "Lancio Valigia", attackDamage: 700, super: "Base dei Facchini", superHp: 1500, gadgets: [{ name: "Ricerca Valigie", description: "Increased suitcase damage." }], starPowers: [{ name: "Portiere d'Elite", description: "Stronger porters." }] }, tips: ["Use base to distract."] },
+            { name: "Sprout", description: "A plant robot that throws bouncy seeds and creates plant walls.", rarity: "Mitico", role: "Artigliere", icon: getPlaceholderImage(50, 50, "32CD32", "FFFFFF", "SPROUT_FACE"), stats: { hp: 4000, attack: "Seme Rimbalzante", attackDamage: 1000, super: "Muro Vegetale", superHp: 3000, gadgets: [{ name: "Protezione", description: "Shield for Sprout." }], starPowers: [{ name: "Super Crescita", description: "Larger super." }] }, tips: ["Use walls to trap."] },
+            { name: "Byron", description: "A pharmacist who heals allies and poisons enemies.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "8B008B", "FFFFFF", "BYRON_FACE"), stats: { hp: 3800, attack: "Dose Letale", attackDamage: 500, super: "Dose Massima", superHealing: 1000, gadgets: [{ name: "Stimolante", description: "Fast reload." }], starPowers: [{ name: "Iniezione Fulminea", description: "Bonus damage for poison." }] }, tips: ["Balance healing and damage."] },
+            { name: "Squeak", description: "A living slime blob that throws sticky bombs.", rarity: "Mitico", role: "Artigliere", icon: getPlaceholderImage(50, 50, "00BFFF", "FFFFFF", "SQUEAK_FACE"), stats: { hp: 3600, attack: "Bomba di Goo", attackDamage: 1000, super: "Bomba Peggiorativa", superDamage: 1200, gadgets: [{ name: "Infezione", description: "Bomb creates more goo." }], starPowers: [{ name: "Appiccicoso", description: "Bomb sticks." }] }, tips: ["Throw bombs behind walls."] },
+            { name: "Lou", description: "A robot ice cream vendor who slows enemies and creates a slippery surface.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "ADD8E6", "000000", "LOU_FACE"), stats: { hp: 4600, attack: "Cono di Ghiaccio", attackDamage: 400, super: "Super Congelamento", superDamage: 100, gadgets: [{ name: "Ghiaccio Freddo", description: "Freezes enemies." }], starPowers: [{ name: "Congelamento", description: "Slows more." }] }, tips: ["Use super to block areas."] },
+            { name: "Ruffs", description: "A space colonel who empowers allies with reinforcement packages.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "BDB76B", "FFFFFF", "RUFFS_FACE"), stats: { hp: 4800, attack: "Raffica di Colpi", attackDamage: 400, super: "Pacchetto di Potenziamento", superBoost: "20%", gadgets: [{ name: "Scudo Protettivo", description: "Shield for self." }], starPowers: [{ name: "Danno Aumentato", description: "Bonus damage for allies." }] }, tips: ["Empower tanks or snipers."] },
+            { name: "Buzz", description: "A dinosaur lifeguard who recharges with his super and stuns enemies.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "FF7F50", "FFFFFF", "BUZZ_FACE"), stats: { hp: 6000, attack: "Pugni Acquatici", attackDamage: 500, super: "Salto del Bagnino", superDamage: 200, gadgets: [{ name: "Sapore di Sale", description: "Heals with super." }], starPowers: [{ name: "Allerta Rossa", description: "Super reloads faster." }] }, tips: ["Get close to enemies for super."] },
+            { name: "Fang", description: "A martial artist who kicks projectiles and dashes through enemies.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "8B0000", "FFFFFF", "FANG_FACE"), stats: { hp: 5600, attack: "Calcio Volante", attackDamage: 800, super: "Calcio di Furia", superDamage: 1000, gadgets: [{ name: "Rotolo di Riso", description: "Instant heal." }], starPowers: [{ name: "Scatto Furioso", description: "Fast dash after super." }] }, tips: ["Use super for chain attacks."] },
+            { name: "Eve", description: "An alien flea who lays eggs and generates small aliens.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "9ACD32", "000000", "EVE_FACE"), stats: { hp: 3600, attack: "Uovo Sgorgante", attackDamage: 500, super: "Nido Alieno", superDamage: 100, gadgets: [{ name: "Uovo Esplosivo", description: "Egg explodes." }], starPowers: [{ name: "Cova Svelta", description: "Faster small aliens." }] }, tips: ["Use aliens for pressure."] },
+            { name: "Janet", description: "A singer who shoots musical notes and flies with her jetpack.", rarity: "Mitico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "FF69B4", "FFFFFF", "JANET_FACE"), stats: { hp: 4200, attack: "Nota Acuta", attackDamage: 800, super: "Volata Aerea", superDamage: 300, gadgets: [{ name: "Raffica di Note", description: "Fast attacks." }], starPowers: [{ name: "Volata Curativa", description: "Heals during flight." }] }, tips: ["Fly to escape or attack."] },
+            { name: "Otis", description: "A sea monster who shoots ink and silences enemies.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "483D8B", "FFFFFF", "OTIS_FACE"), stats: { hp: 5000, attack: "Schizzo d'Inchiostro", attackDamage: 400, super: "Silenzio Marino", superDuration: "3 sec", gadgets: [{ name: "Inchiostro Appiccicoso", description: "Slows enemies." }], starPowers: [{ name: "Danno Profondo", description: "Bonus damage for ink." }] }, tips: ["Silence dangerous brawlers."] },
+            { name: "Buster", description: "A tank projector who deflects projectiles and reflects damage.", rarity: "Mitico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "00008B", "FFFFFF", "BUSTER_FACE"), stats: { hp: 8000, attack: "Telecamera a Spruzzo", attackDamage: 1200, super: "Mega Scudo", superDamageReduction: "90%", gadgets: [{ name: "Ricarica Istantanea", description: "Super reload." }], starPowers: [{ name: "Riflesso", description: "Reflects damage." }] }, tips: ["Use shield to protect."] },
+            { name: "Gray", description: "An illusionist who creates portals to teleport and pull enemies.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "696969", "FFFFFF", "GRAY_FACE"), stats: { hp: 4000, attack: "Illusione di Pistola", attackDamage: 900, super: "Portali Illusori", superDamage: 0, gadgets: [{ name: "Trappola Illusoria", description: "Creates a fake trap." }], starPowers: [{ name: "Teletrasporto Rapido", description: "Faster portals." }] }, tips: ["Teleport to outmaneuver."] },
+            { name: "R-T", description: "A robot that splits into two forms with different abilities.", rarity: "Mitico", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "00FFFF", "000000", "RT_FACE"), stats: { hp: 5000, attack: "Colpo Preciso", attackDamage: 600, super: "Divisione", superDamage: 0, gadgets: [{ name: "Riconfigurazione", description: "Changes form." }], starPowers: [{ name: "Doppio Danno", description: "Both forms deal more damage." }] }, tips: ["Exploit two forms."] },
+            { name: "Willow", description: "A witch who charms enemies and controls them.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "800080", "FFFFFF", "WILLOW_FACE"), stats: { hp: 3600, attack: "Incantesimo Acido", attackDamage: 700, super: "Controllo Mentale", superDuration: "2 sec", gadgets: [{ name: "Fiala del Sonno", description: "Puts enemies to sleep." }], starPowers: [{ name: "Mente Controllata", description: "Super lasts longer." }] }, tips: ["Control enemy brawlers."] },
+            { name: "Doug", description: "A living hot dog stand that heals and revives allies.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "FF4500", "FFFFFF", "DOUG_FACE"), stats: { hp: 6000, attack: "Salsiccia Curativa", attackHealing: 800, super: "Resurrezione", superHealing: 2000, gadgets: [{ name: "Salsiccia Piccante", description: "Bonus damage." }], starPowers: [{ name: "Ricetta Segreta", description: "More effective healing." }] }, tips: ["Heal frontline allies."] },
+            { name: "Chuck", description: "A train worker who places poles and dashes between them.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "A0522D", "FFFFFF", "CHUCK_FACE"), stats: { hp: 5800, attack: "Martello Ferroviario", attackDamage: 900, super: "Locomotiva", superDamage: 500, gadgets: [{ name: "Binari Falsi", description: "Places a false pole." }], starPowers: [{ name: "Accelerazione", description: "Faster super dash." }] }, tips: ["Use poles to bypass."] },
+            { name: "Charlie", description: "A circus artist who traps enemies in a cocoon.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "FF69B4", "FFFFFF", "CHARLIE_FACE"), stats: { hp: 4000, attack: "Lancio Bozzolo", attackDamage: 700, super: "Intrappolamento", superDuration: "3 sec", gadgets: [{ name: "Fuga Acrobatica", description: "Fast dash." }], starPowers: [{ name: "Bozzolo Rinforzato", description: "Stronger cocoon." }] }, tips: ["Trap annoying brawlers."] },
+            { name: "Mico", description: "A jumping monkey that moves fast and attacks with jumps.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "8B4513", "FFFFFF", "MICO_FACE"), stats: { hp: 3800, attack: "Salto Acrobatico", attackDamage: 600, super: "Banana Bomb", superDamage: 800, gadgets: [{ name: "Cascata di Banane", description: "Throws bananas." }], starPowers: [{ name: "Acrobazia", description: "Bonus damage after jump." }] }, tips: ["Use jumps to attack."] },
+            { name: "Melodie", description: "A DJ who throws bouncing discs and creates harmonies.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "FFC0CB", "000000", "MELODIE_FACE"), stats: { hp: 4200, attack: "Disco Armonico", attackDamage: 500, super: "Sinfonia Curativa", superHealing: 1000, gadgets: [{ name: "Mix Perfetto", description: "Super reloads faster." }], starPowers: [{ name: "Eco Curativo", description: "Additional healing." }] }, tips: ["Heal allies with music."] },
+            { name: "Lily", description: "A ninja who uses her trail to teleport and attacks with poisonous flowers.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "DA70D6", "FFFFFF", "LILY_FACE"), stats: { hp: 4000, attack: "Fiore Velenoso", attackDamage: 700, super: "Scia Teleport", superDamage: 200, gadgets: [{ name: "Petalo Furtivo", description: "Hides in bushes." }], starPowers: [{ name: "Ombra Fuggente", description: "Bonus speed after teleport." }] }, tips: ["Teleport to assault."] },
+            { name: "Clancy", description: "A polar bear who throws snowballs and creates ice walls.", rarity: "Mitico", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "B0E0E6", "000000", "CLANCY_FACE"), stats: { hp: 7000, attack: "Palla di Neve", attackDamage: 800, super: "Muro di Ghiaccio", superHp: 2500, gadgets: [{ name: "Tormenta", description: "Slows enemies." }], starPowers: [{ name: "Congelamento Rapido", description: "Stronger wall." }] }, tips: ["Use walls to block."] },
+            { name: "Moe", description: "A fisherman who casts his line to pull enemies and attacks with his rod.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "4169E1", "FFFFFF", "MOE_FACE"), stats: { hp: 4400, attack: "Lenza Affilata", attackDamage: 600, super: "Tiro a Segno", superDamage: 0, gadgets: [{ name: "Ancora di Piombo", description: "Stuns enemies." }], starPowers: [{ name: "Presa Forte", description: "Pulls further." }] }, tips: ["Pull brawlers out of position."] },
+            { name: "Juju", description: "A juggler who throws fiery balls and creates illusions.", rarity: "Mitico", role: "Artigliere", icon: getPlaceholderImage(50, 50, "FF8C00", "FFFFFF", "JUJU_FACE"), stats: { hp: 3800, attack: "Palla di Fuoco", attackDamage: 700, super: "Illusione di Giocoleria", superDamage: 100, gadgets: [{ name: "Fuoco Fatuo", description: "Creates a small flame." }], starPowers: [{ name: "Maestro di Fuoco", description: "Bonus damage for fire." }] }, tips: ["Zone with fireballs."] },
+            { name: "Ollie", description: "A clockmaker who shoots gears and manipulates time for enemies.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "DAA520", "FFFFFF", "OLLIE_FACE"), stats: { hp: 4000, attack: "Lancio Ingranaggi", attackDamage: 500, super: "Distorsione Temporale", superDuration: "2 sec", gadgets: [{ name: "Accelerazione", description: "Accelerates allies." }], starPowers: [{ name: "Rallentamento", description: "Slows enemies." }] }, tips: ["Use super to block."] },
+            { name: "Lumi", description: "A luminous fairy who shoots light beams and blinds enemies.", rarity: "Mitico", role: "Supporto", icon: getPlaceholderImage(50, 50, "FFFF00", "000000", "LUMI_FACE"), stats: { hp: 3600, attack: "Raggio Luminoso", attackDamage: 600, super: "Accecamento", superDuration: "1 sec", gadgets: [{ name: "Luce Curativa", description: "Heals allies." }], starPowers: [{ name: "Splendore", description: "Bonus damage for blindness." }] }, tips: ["Blind dangerous brawlers."] },
+            { name: "Finx", description: "A sphinx who shoots sand and creates confusing sandstorms.", rarity: "Mitico", role: "Controllore", icon: getPlaceholderImage(50, 50, "C2B280", "000000", "FINX_FACE"), stats: { hp: 4600, attack: "Soffio di Sabbia", attackDamage: 700, super: "Tempesta del Deserto", superDamage: 100, gadgets: [{ name: "Illusione di Sabbia", description: "Creates a clone." }], starPowers: [{ name: "Sabbia Mobili", description: "Slows enemies." }] }, tips: ["Confuse enemies."] },
+            { name: "Jae-yong", description: "A samurai who attacks with his katana and charges through enemies.", rarity: "Mitico", role: "Assassino", icon: getPlaceholderImage(50, 50, "6A5ACD", "FFFFFF", "JAEYONG_FACE"), stats: { hp: 5800, attack: "Lama Affilata", attackDamage: 1000, super: "Carica del Samurai", superDamage: 1200, gadgets: [{ name: "Parata", description: "Temporary shield." }], starPowers: [{ name: "Colpo Preciso", description: "Bonus damage with super." }] }, tips: ["Use charge to engage."] },
+
+            // Legendary
+            { name: "Spike", description: "A cactus that shoots explosive spikes and creates a slowing zone.", rarity: "Leggendario", role: "Cecchino", icon: getPlaceholderImage(50, 50, "4CAF50", "FFFFFF", "SPIKE_FACE"), stats: { hp: 3400, attack: "Cactus Acuminato", attackDamage: 520, super: "Bomba Spinoso", superDamage: 100, gadgets: [{ name: "Granata di Spine", description: "Three grenades." }], starPowers: [{ name: "Ghiaccio al Limone", description: "Heals in super." }] }, tips: ["Exploit area damage."] },
+            { name: "Crow", description: "A poisoning crow who throws daggers and leaps into the air.", rarity: "Leggendario", role: "Assassino", icon: getPlaceholderImage(50, 50, "607D8B", "FFFFFF", "CROW_FACE"), stats: { hp: 3600, attack: "Dagger Toss", attackDamage: 400, super: "Swoop", superDamage: 400, gadgets: [{ name: "Fiala Tossica", description: "Stronger poison." }], starPowers: [{ name: "Tossicità", description: "Poisoned enemies take less damage." }] }, tips: ["Put pressure with poison."] },
+            { name: "Leon", description: "An invisible assassin who throws blades and disappears.", rarity: "Leggendario", role: "Assassino", icon: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "LEON_FACE"), stats: { hp: 4400, attack: "Lame a Vortice", attackDamage: 580, super: "Bomba Fumo", superDuration: "6 sec", gadgets: [{ name: "Miraggio", description: "Creates a clone." }], starPowers: [{ name: "Fumo Velato", description: "Bonus speed when invisible." }] }, tips: ["Surprise enemies."] },
+            { name: "Sandy", description: "A sleepy brawler who throws sand and creates a sandstorm that hides.", rarity: "Leggendario", role: "Supporto", icon: getPlaceholderImage(50, 50, "DAA520", "FFFFFF", "SANDY_FACE"), stats: { hp: 5000, attack: "Rocce Taglienti", attackDamage: 900, super: "Tempesta di Sabbia", superDuration: "9 sec", gadgets: [{ name: "Sonno Riparatore", description: "Heals himself." }], starPowers: [{ name: "Sabbia Curativa", description: "Heals allies in super." }] }, tips: ["Use super to hide the team."] },
+            { name: "Amber", description: "A pyromaniac who shoots continuous flames and creates fire puddles.", rarity: "Leggendario", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "FF4500", "FFFFFF", "AMBER_FACE"), stats: { hp: 4200, attack: "Fiamme Eterne", attackDamage: 200, super: "Pozza di Fuoco", superDamage: 1000, gadgets: [{ name: "Spruzzo Infuocato", description: "Slows enemies." }], starPowers: [{ name: "Ricarica Rapida", description: "Faster reload." }] }, tips: ["Burn areas."] },
+            { name: "Meg", description: "A little girl who can transform into a giant robot.", rarity: "Leggendario", role: "Peso Massimo", icon: getPlaceholderImage(50, 50, "B0C4DE", "000000", "MEG_FACE"), stats: { hp: 3600, attack: "Spari Laser", attackDamage: 200, super: "Mega Robot", superHp: 7000, gadgets: [{ name: "Attacco Aereo", description: "Jumps and lands." }], starPowers: [{ name: "Auto-Riparazione", description: "Heals in robot." }] }, tips: ["Use robot to attack."] },
+            { name: "Surge", description: "A robot that powers up with each super and dashes.", rarity: "Leggendario", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "FFD700", "000000", "SURGE_FACE"), stats: { hp: 4000, attack: "Colpo Energizzato", attackDamage: 1100, super: "Massima Potenza", superDamage: 400, gadgets: [{ name: "Teletrasporto", description: "Teleport." }], starPowers: [{ name: "Scatto Potenziato", description: "Stronger super." }] }, tips: ["Get power-ups quickly."] },
+            { name: "Chester", description: "An unpredictable jester with random supers.", rarity: "Leggendario", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "D8BFD8", "000000", "CHESTER_FACE"), stats: { hp: 4200, attack: "Lancio Giullare", attackDamage: 600, super: "Mischia Casuale", superDamage: 0, gadgets: [{ name: "Mischia Bombe", description: "Throws bombs." }], starPowers: [{ name: "Super Forte", description: "Stronger super." }] }, tips: ["Adapt to supers."] },
+            { name: "Cordelius", description: "A mushroom with poisonous attacks and the ability to transport enemies to the Shadow Realm.", rarity: "Leggendario", role: "Assassino", icon: getPlaceholderImage(50, 50, "8B4513", "FFFFFF", "CORDELIUS_FACE"), stats: { hp: 5000, attack: "Spore Velenose", attackDamage: 700, super: "Regno delle Ombre", superDamage: 200, gadgets: [{ name: "Fungo Guaritore", description: "Heals himself." }], starPowers: [{ name: "Ombra Letale", description: "Bonus damage in Shadow Realm." }] }, tips: ["Use super for dueling."] },
+            { name: "Kit", description: "A hacker cat who jumps on allies/enemies and becomes invulnerable.", rarity: "Leggendario", role: "Assassino", icon: getPlaceholderImage(50, 50, "6A5ACD", "FFFFFF", "KIT_FACE"), stats: { hp: 3800, attack: "Graffio Laser", attackDamage: 500, super: "Salto Hacker", superDamage: 200, gadgets: [{ name: "Errore di Sistema", description: "Stuns enemies." }], starPowers: [{ name: "Cura Rapida", description: "Heals during jump." }] }, tips: ["Jump to attack or escape."] },
+            { name: "Draco", description: "A metal guitarist who shoots notes and rides a dragon.", rarity: "Leggendario", role: "Assaltatore", icon: getPlaceholderImage(50, 50, "8B0000", "FFFFFF", "DRACO_FACE"), stats: { hp: 5500, attack: "Nota Metallica", attackDamage: 800, super: "Assalto del Drago", superDamage: 1000, gadgets: [{ name: "Riff di Fuoco", description: "Area damage." }], starPowers: [{ name: "Danza del Drago", description: "Super slows." }] }, tips: ["Use dragon to break through."] },
+            { name: "Kenji", description: "A martial arts master who attacks quickly and dodges shots.", rarity: "Leggendario", role: "Assassino", icon: getPlaceholderImage(50, 50, "483D8B", "FFFFFF", "KENJI_FACE"), stats: { hp: 4000, attack: "Colpi Fulminei", attackDamage: 600, super: "Schivata Perfetta", superDuration: "2 sec", gadgets: [{ name: "Contrattacco", description: "Reflected damage." }], starPowers: [{ name: "Maestro di Schivata", description: "Bonus damage after dodge." }] }, tips: ["Dodge enemy attacks."] },
+
+            // Chromatic (old rarity, now Ultra Legendary)
+            { name: "Kaze", description: "A wind ninja who shoots gusts and creates a tornado.", rarity: "Cromatico", role: "Controllore", icon: getPlaceholderImage(50, 50, "9400D3", "FFFFFF", "KAZE_FACE"), stats: { hp: 4000, attack: "Raffica di Vento", attackDamage: 600, super: "Tornado del Vento", superDamage: 100, gadgets: [{ name: "Soffio Leggero", description: "Fast dash." }], starPowers: [{ name: "Vento Furioso", description: "Larger tornado." }] }, tips: ["Use tornado to trap."] }
         ];
 
-        // Dati delle mappe
+        // Map data (remains unchanged from previous version)
         const allMapsData = [
             {
                 name: "Caccia al Tesoro",
                 mode: "Arraffagemme",
                 mapImage: getPlaceholderImage(400, 200, "28a745", "FFFFFF", "Caccia+al+Tesoro"),
-                modeImage: getPlaceholderImage(50, 50, "FFC107", "000000", "💎"),
+                modeImage: getPlaceholderImage(50, 50, "9A3DF3", "FFFFFF", "💎"), // Updated icon color
                 bestBrawlers: ["Poco", "Pam", "Jessie"].map(name => allBrawlersData.find(b => b.name === name))
             },
             {
                 name: "Rapina al Centro",
                 mode: "Rapina",
                 mapImage: getPlaceholderImage(400, 200, "dc3545", "FFFFFF", "Rapina+al+Centro"),
-                modeImage: getPlaceholderImage(50, 50, "FF5722", "FFFFFF", "💰"),
+                modeImage: getPlaceholderImage(50, 50, "D65CD3", "FFFFFF", "💰"), // Updated icon color
                 bestBrawlers: ["Shelly", "Bull", "Colt"].map(name => allBrawlersData.find(b => b.name === name))
             },
             {
@@ -356,14 +256,14 @@
                 name: "Footbrawl: Centro Campo",
                 mode: "Footbrawl",
                 mapImage: getPlaceholderImage(400, 200, "007bff", "FFFFFF", "Centro+Campo"),
-                modeImage: getPlaceholderImage(50, 50, "2196F3", "FFFFFF", "⚽"),
+                modeImage: getPlaceholderImage(50, 50, "8CA0E0", "FFFFFF", "⚽"), // Updated icon color
                 bestBrawlers: ["Mortis", "El Primo", "Frank"].map(name => allBrawlersData.find(b => b.name === name))
             },
             {
                 name: "Ricercati: Fuga Stellare",
                 mode: "Ricercati",
                 mapImage: getPlaceholderImage(400, 200, "fd7e14", "FFFFFF", "Fuga+Stellare"),
-                modeImage: getPlaceholderImage(50, 50, "673AB7", "FFFFFF", "⭐"),
+                modeImage: getPlaceholderImage(50, 50, "00CFFF", "FFFFFF", "⭐"), // Updated icon color
                 bestBrawlers: ["Piper", "Bea", "Brock"].map(name => allBrawlersData.find(b => b.name === name))
             },
             {
@@ -372,73 +272,118 @@
                 mapImage: getPlaceholderImage(400, 200, "343a40", "FFFFFF", "Isola+del+Teschio"),
                 modeImage: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "💀"),
                 bestBrawlers: ["Bull", "Shelly", "Leon"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            // New placeholder maps for K.O. and Dominio
+            {
+                name: "Caos di Mezzanotte",
+                mode: "K.O.",
+                mapImage: getPlaceholderImage(400, 200, "F7831C", "FFFFFF", "Caos+di+Mezzanotte"),
+                modeImage: getPlaceholderImage(50, 50, "F7831C", "FFFFFF", "👊"),
+                bestBrawlers: ["Piper", "Brock", "Belle"].map(name => allBrawlersData.find(b => b.name === name))
+            },
+            {
+                name: "Fortezza del Controllo",
+                mode: "Dominio",
+                mapImage: getPlaceholderImage(400, 200, "E33B50", "FFFFFF", "Fortezza+del+Controllo"),
+                modeImage: getPlaceholderImage(50, 50, "E33B50", "FFFFFF", "👑"),
+                bestBrawlers: ["Ash", "Frank", "El Primo"].map(name => allBrawlersData.find(b => b.name === name))
             }
         ];
 
+        // Data for mode filters (updated with new mode colors and icons)
         const availableModesData = [
-            { name: "Tutte le Modalità", icon: getPlaceholderImage(50, 50, "6c757d", "FFFFFF", "ALL"), filter: null },
-            { name: "Arraffagemme", icon: getPlaceholderImage(50, 50, "FFC107", "000000", "💎"), filter: "Arraffagemme" },
-            { name: "Rapina", icon: getPlaceholderImage(50, 50, "FF5722", "FFFFFF", "💰"), filter: "Rapina" },
-            { name: "Zona Calda", icon: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "🔥"), filter: "Zona Calda" },
-            { name: "Footbrawl", icon: getPlaceholderImage(50, 50, "2196F3", "FFFFFF", "⚽"), filter: "Footbrawl" },
-            { name: "Ricercati", icon: getPlaceholderImage(50, 50, "673AB7", "FFFFFF", "⭐"), filter: "Ricercati" },
-            { name: "Sopravvivenza", icon: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "💀"), filter: "Sopravvivenza" }
+            { name: "Tutte le Modalità", icon: getPlaceholderImage(50, 50, "6c757d", "FFFFFF", "ALL"), filter: null, bgColor: "6c757d" },
+            { name: "Arraffagemme", icon: getPlaceholderImage(50, 50, "9A3DF3", "FFFFFF", "💎"), filter: "Arraffagemme", bgColor: "9A3DF3" },
+            { name: "Rapina", icon: getPlaceholderImage(50, 50, "D65CD3", "FFFFFF", "💰"), filter: "Rapina", bgColor: "D65CD3" },
+            { name: "Zona Calda", icon: getPlaceholderImage(50, 50, "9C27B0", "FFFFFF", "🔥"), filter: "Zona Calda", bgColor: "6f42c1" }, // Original purple
+            { name: "Footbrawl", icon: getPlaceholderImage(50, 50, "8CA0E0", "FFFFFF", "⚽"), filter: "Footbrawl", bgColor: "8CA0E0" },
+            { name: "Ricercati", icon: getPlaceholderImage(50, 50, "00CFFF", "FFFFFF", "⭐"), filter: "Ricercati", bgColor: "00CFFF" },
+            { name: "Sopravvivenza", icon: getPlaceholderImage(50, 50, "F44336", "FFFFFF", "💀"), filter: "Sopravvivenza", bgColor: "343a40" },
+            { name: "K.O.", icon: getPlaceholderImage(50, 50, "F7831C", "FFFFFF", "👊"), filter: "K.O.", bgColor: "F7831C" },
+            { name: "Dominio", icon: getPlaceholderImage(50, 50, "E33B50", "FFFFFF", "👑"), filter: "Dominio", bgColor: "E33B50" }
         ];
 
+
+        // Brawler class data (updated with more brawlers and consistent roles)
         const brawlerClassesData = {
-            "Assassini": { emoji: "🔪", brawlers: ["Mortis", "Leon", "Crow"] },
-            "Peso Massimo": { emoji: "💪", brawlers: ["El Primo", "Frank"] },
-            "Supporto": { emoji: "🩹", brawlers: ["Poco", "Pam"] },
-            "Controllori": { emoji: "🌐", brawlers: ["Jessie"] },
-            "Assaltatori": { emoji: "💥", brawlers: ["Shelly", "Colt"] },
-            "Cecchino": { emoji: "🎯", brawlers: ["Spike", "Piper", "Bea"] },
-            "Artiglieri": { emoji: "💣", brawlers: ["Barley", "Dynamike"] },
+            "Assassini": { emoji: "🔪", brawlers: ["Mortis", "Leon", "Crow", "Stu", "Edgar", "Buzz", "Fang", "Shade", "Mico", "Lily", "Jae-yong", "Kit"] },
+            "Peso Massimo": { emoji: "💪", brawlers: ["El Primo", "Frank", "Bull", "Rosa", "Darryl", "Jacky", "Ash", "Sam", "Hank", "Bibi", "Buster", "Clancy", "Meg"] },
+            "Supporto": { emoji: "🩹", brawlers: ["Poco", "Pam", "Gus", "Byron", "Gene", "Ruffs", "Doug", "Angelo", "Melodie", "Sandy", "Lumi", "Max"] },
+            "Controllori": { emoji: "🌐", brawlers: ["Jessie", "Tick", "Bo", "Emz", "Mr. P", "Lou", "Eve", "Otis", "Gray", "Willow", "Charlie", "Moe", "Ollie", "Finx", "Meeple", "Larry & Lawrie", "Kaze"] },
+            "Assaltatori": { emoji: "💥", brawlers: ["Shelly", "Colt", "8-Bit", "Griff", "Bonnie", "Colette", "Lola", "Maisie", "Pearl", "Janet", "R-T", "Amber", "Surge", "Chester", "Draco"] },
+            "Cecchino": { emoji: "🎯", brawlers: ["Brock", "Spike", "Stecca", "Piper", "Bea", "Nani", "Belle", "Mandy", "Kenji"] },
+            "Artiglieri": { emoji: "💣", brawlers: ["Bombardino", "Dynamike", "Sprout", "Squeak", "Berry", "Juju", "Grom"] }
         };
 
-        // Stati dell'applicazione (equivalenti a useState di React)
+        // Application states (equivalent to React's useState)
         let activeSection = 'home';
         let selectedBrawler = null;
-        let selectedModeFilter = null; // Stato per il filtro delle mappe
+        let selectedModeFilter = null; // State for map filter
+        let mapSearchQuery = '';
+        let brawlerSearchQuery = '';
+        let classSearchQuery = '';
+
 
         const contentArea = document.getElementById('content-area');
         const navButtons = {
             'home': document.getElementById('home-nav-button'),
-            'mapsAndBrawlers': document.getElementById('maps-nav-button'),
+            'maps': document.getElementById('maps-nav-button'), // Changed to 'maps' for simpler logic
             'classes': document.getElementById('classes-nav-button'),
-            'description': document.getElementById('description-nav-button'),
+            'brawlers': document.getElementById('brawlers-nav-button'),
             'about': document.getElementById('about-nav-button')
         };
 
-        // Funzione per navigare tra le sezioni
-        const navigate = (section, brawlerName = null) => {
+        // Function to navigate between sections
+        const navigate = (section, brawlerName = null, modeToDisplay = null) => {
             activeSection = section;
             selectedBrawler = brawlerName ? allBrawlersData.find(b => b.name === brawlerName) : null;
+            selectedModeFilter = modeToDisplay; // Set the mode filter if a specific mode is passed
             renderSection();
-            updateNavButtonStyles(); // Aggiorna gli stili dei bottoni di navigazione
+            updateNavButtonStyles();
+            // Reset search queries when changing section, but only if not navigating to a specific mode view
+            if (section !== 'mapsAndBrawlers' || modeToDisplay === null) {
+                mapSearchQuery = '';
+            }
+            brawlerSearchQuery = '';
+            classSearchQuery = '';
         };
 
-        // Aggiorna gli stili dei bottoni di navigazione
+        // Update navigation button styles
         const updateNavButtonStyles = () => {
             for (const key in navButtons) {
                 if (navButtons[key]) {
                     navButtons[key].classList.remove('bg-purple-600');
-                    if (key === 'maps' && activeSection === 'mapsAndBrawlers') {
-                         navButtons[key].classList.add('bg-purple-600');
-                    } else if (key === 'classes' && activeSection === 'brawlerClasses') {
-                         navButtons[key].classList.add('bg-purple-600');
-                    } else if (key === 'description' && activeSection === 'brawlerDescription') {
-                         navButtons[key].classList.add('bg-purple-600');
-                    } else if (key === 'about' && activeSection === 'about') {
-                         navButtons[key].classList.add('bg-purple-600');
-                    } else if (key === 'home' && activeSection === 'home') {
-                         navButtons[key].classList.add('bg-purple-600');
+                    if (
+                        (key === 'maps' && (activeSection === 'mapsAndBrawlers' || activeSection === 'gameModesCategories')) ||
+                        (key === 'classes' && activeSection === 'brawlerClasses') ||
+                        (key === 'brawlers' && (activeSection === 'brawlers' || activeSection === 'brawlerDetail')) ||
+                        (key === 'about' && activeSection === 'about') ||
+                        (key === 'home' && activeSection === 'home')
+                    ) {
+                        navButtons[key].classList.add('bg-purple-600');
                     }
                 }
             }
         };
 
+        // Function to show the map modal
+        const showMapModal = (mapImageSrc, mapName) => {
+            const modal = document.getElementById('map-modal');
+            const modalImage = document.getElementById('modal-map-image');
+            const modalName = document.getElementById('modal-map-name');
 
-        // --- Funzioni per renderizzare le singole sezioni ---
+            modalImage.src = mapImageSrc;
+            modalName.textContent = mapName;
+            modal.classList.remove('hidden');
+        };
+
+        // Function to hide the map modal
+        const hideMapModal = () => {
+            document.getElementById('map-modal').classList.add('hidden');
+        };
+
+
+        // --- Functions to render individual sections ---
 
         const renderHomeSection = () => {
             contentArea.innerHTML = `
@@ -456,8 +401,8 @@
                         <button id="home-classes-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
                             Classi Brawler
                         </button>
-                        <button id="home-description-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
-                            Descrizione Brawler
+                        <button id="home-brawlers-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
+                            Brawlers
                         </button>
                         <button id="home-about-button" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-xl">
                             Informazioni
@@ -465,56 +410,109 @@
                     </div>
                 </div>
             `;
-            // Aggiungi listener ai bottoni della home
-            document.getElementById('home-maps-button').onclick = () => navigate('mapsAndBrawlers');
+            // Add listeners to home buttons
+            document.getElementById('home-maps-button').onclick = () => navigate('gameModesCategories'); // Changed target to game modes categories
             document.getElementById('home-classes-button').onclick = () => navigate('brawlerClasses');
-            document.getElementById('home-description-button').onclick = () => navigate('brawlerDescription');
+            document.getElementById('home-brawlers-button').onclick = () => navigate('brawlers');
             document.getElementById('home-about-button').onclick = () => navigate('about');
         };
 
-        const renderMapsAndBestBrawlers = () => {
-            const filteredMaps = selectedModeFilter
-                ? allMapsData.filter(map => map.mode === selectedModeFilter)
-                : allMapsData;
+        const renderGameModesCategories = () => {
+            let categoriesHtml = '';
+            // Filter out "Tutte le Modalità" as it's not a single category for initial display
+            const mainCategories = availableModesData.filter(mode => mode.filter !== null);
 
-            let mapsHtml = '';
-            filteredMaps.forEach(map => {
-                let brawlersListHtml = '';
-                map.bestBrawlers.forEach(brawler => {
-                    if (brawler) {
-                        brawlersListHtml += `
-                            <li class="flex items-center mb-2 last:mb-0">
-                                <button data-brawler-name="${brawler.name}" class="brawler-detail-button flex items-center p-2 rounded-lg hover:bg-zinc-700 transition duration-200 w-full text-left">
-                                    <img src="${brawler.icon}" alt="${brawler.name}" class="w-8 h-8 rounded-full mr-2 object-cover border border-purple-400 shadow-md" />
-                                    <span class="text-md text-[#bbbbbb] font-medium">${brawler.name}</span>
-                                </button>
-                            </li>
-                        `;
-                    }
-                });
+            // Dynamically assign grid columns based on number of items for responsiveness
+            const gridColsClass = mainCategories.length <= 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
 
-                mapsHtml += `
-                    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105 flex flex-col items-center">
-                        <h3 class="text-2xl font-semibold mb-2 text-white text-center">${map.name}</h3>
-                        <img src="${map.mapImage}" alt="Mappa: ${map.name}" class="w-full h-auto rounded-lg mb-4 object-cover border border-zinc-600" />
-                        <div class="flex items-center mb-4">
-                            <img src="${map.modeImage}" alt="Modalità: ${map.mode}" class="w-10 h-10 rounded-full mr-2 object-cover border-2 border-yellow-400 shadow-md" />
-                            <p class="text-lg text-[#bbbbbb]">Modalità: <span class="font-medium">${map.mode}</span></p>
-                        </div>
-                        <p class="text-lg text-[#bbbbbb] mb-2">Migliori Brawler:</p>
-                        <ul class="list-none p-0 w-full">
-                            ${brawlersListHtml}
-                        </ul>
-                    </div>
+            mainCategories.forEach(mode => {
+                const cardBgColor = mode.bgColor;
+                categoriesHtml += `
+                    <button data-mode-name="${mode.filter}" style="background-color: #${cardBgColor};"
+                            class="game-mode-category-button flex flex-col items-center justify-center p-6 rounded-xl shadow-lg
+                                   transform transition duration-300 hover:scale-105 border-2 border-zinc-700
+                                   focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 text-white
+                                   w-full h-48 md:h-56 text-center">
+                        <img src="${mode.icon}" alt="${mode.name}" class="w-20 h-20 rounded-md mb-4 object-cover border-4 border-white shadow-lg" />
+                        <h3 class="text-3xl font-bold">${mode.name}</h3>
+                    </button>
                 `;
             });
 
+            contentArea.innerHTML = `
+                <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
+                    <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Seleziona una Modalità di Gioco</h2>
+                    <div class="grid ${gridColsClass} gap-6">
+                        ${categoriesHtml}
+                    </div>
+                </div>
+            `;
+
+            contentArea.querySelectorAll('.game-mode-category-button').forEach(button => {
+                button.onclick = (event) => {
+                    const modeName = event.currentTarget.dataset.modeName;
+                    navigate('mapsAndBrawlers', null, modeName);
+                };
+            });
+        };
+
+
+        const renderMapsAndBestBrawlers = () => {
+            const lowerCaseMapSearchQuery = mapSearchQuery.toLowerCase();
+            const mapsToDisplay = selectedModeFilter
+                ? allMapsData.filter(map => map.mode === selectedModeFilter)
+                : allMapsData; // Show all if no specific mode selected
+
+            const filteredMaps = mapsToDisplay.filter(map =>
+                map.name.toLowerCase().includes(lowerCaseMapSearchQuery)
+            );
+
+            let mapsHtml = '';
+            if (filteredMaps.length > 0) {
+                filteredMaps.forEach(map => {
+                    let brawlersListHtml = '';
+                    map.bestBrawlers.forEach(brawler => {
+                        if (brawler) {
+                            const rarityColorStyle = `color: ${getRarityTextColor(brawler.rarity)};`;
+                            const rarityBorderStyle = `border-color: ${getRarityBorderColor(brawler.rarity)};`;
+                            brawlersListHtml += `
+                                <li class="flex items-center mb-2 last:mb-0">
+                                    <button data-brawler-name="${brawler.name}" class="brawler-detail-button flex items-center p-2 rounded-lg hover:bg-zinc-700 transition duration-200 w-full text-left">
+                                        <img src="${brawler.icon}" alt="${brawler.name}" class="w-8 h-8 rounded-md mr-2 object-cover border-2 shadow-md" style="${rarityBorderStyle}" />
+                                        <span class="text-md font-medium" style="${rarityColorStyle}">${brawler.name}</span>
+                                    </button>
+                                </li>
+                            `;
+                        }
+                    });
+
+                    mapsHtml += `
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105 flex flex-col items-center">
+                            <h3 class="text-2xl font-semibold mb-2 text-white text-center">${map.name}</h3>
+                            <img src="${map.mapImage}" alt="Mappa: ${map.name}" class="map-image-clickable w-full h-auto rounded-lg mb-4 object-cover border border-zinc-600 cursor-pointer" data-map-image="${map.mapImage}" data-map-name="${map.name}" />
+                            <div class="flex items-center mb-4">
+                                <img src="${map.modeImage}" alt="Modalità: ${map.mode}" class="w-10 h-10 rounded-md mr-2 object-cover border-2 border-yellow-400 shadow-md" />
+                                <p class="text-lg text-[#bbbbbb]">Modalità: <span class="font-medium">${map.mode}</span></p>
+                            </div>
+                            <p class="text-lg text-[#bbbbbb] mb-2">Migliori Brawler:</p>
+                            <ul class="list-none p-0 w-full">
+                                ${brawlersListHtml}
+                            </ul>
+                        </div>
+                    `;
+                });
+            } else {
+                mapsHtml = `<p class="text-center text-xl text-gray-400 col-span-full">Nessuna mappa trovata per la ricerca e i filtri selezionati.</p>`;
+            }
+
+
             let modeFilterButtonsHtml = '';
+            // Always show all mode filter buttons to allow switching modes
             availableModesData.forEach(mode => {
                 const isActive = selectedModeFilter === mode.filter ? 'bg-purple-600 border-purple-400' : 'hover:bg-zinc-700 border-zinc-700';
                 modeFilterButtonsHtml += `
                     <button data-mode-filter="${mode.filter}" class="mode-filter-button flex flex-col items-center p-3 rounded-xl transition duration-300 ${isActive} border-2">
-                        <img src="${mode.icon}" alt="${mode.name}" class="w-12 h-12 rounded-full mb-2 object-cover" />
+                        <img src="${mode.icon}" alt="${mode.name}" class="w-12 h-12 rounded-md mb-2 object-cover" />
                         <span class="text-sm font-medium text-white">${mode.name}</span>
                     </button>
                 `;
@@ -531,57 +529,92 @@
                         </div>
                     </div>
 
+                    <div class="mb-8 p-4 bg-zinc-800 rounded-xl shadow-lg border border-zinc-700">
+                        <label for="map-search" class="block text-xl font-semibold text-white mb-2">Cerca Mappa per Nome:</label>
+                        <input type="text" id="map-search" value="${mapSearchQuery}" placeholder="Es. Caccia al Tesoro"
+                               class="w-full p-3 rounded-lg bg-zinc-700 text-white border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         ${mapsHtml}
                     </div>
                 </div>
             `;
-            // Add event listeners using delegation for dynamically created elements
+
+            // Add event listeners for dynamically created elements
             contentArea.querySelectorAll('.brawler-detail-button').forEach(button => {
                 button.onclick = (event) => navigate('brawlerDetail', event.currentTarget.dataset.brawlerName);
             });
             contentArea.querySelectorAll('.mode-filter-button').forEach(button => {
                 button.onclick = (event) => {
+                    // Update the filter and re-render the maps
                     selectedModeFilter = event.currentTarget.dataset.modeFilter === 'null' ? null : event.currentTarget.dataset.modeFilter;
-                    renderMapsAndBestBrawlers(); // Re-render to apply filter and update button styles
+                    mapSearchQuery = ''; // Reset search when changing mode filter
+                    renderMapsAndBestBrawlers();
+                };
+            });
+            document.getElementById('map-search').oninput = (event) => {
+                mapSearchQuery = event.target.value;
+                renderMapsAndBestBrawlers(); // Re-render to apply search filter
+            };
+            contentArea.querySelectorAll('.map-image-clickable').forEach(img => {
+                img.onclick = (event) => {
+                    showMapModal(event.currentTarget.dataset.mapImage, event.currentTarget.dataset.mapName);
                 };
             });
         };
 
         const renderBrawlerClasses = () => {
-            let classesHtml = '';
-            for (const className in brawlerClassesData) {
-                const data = brawlerClassesData[className];
-                let brawlersListHtml = '';
-                data.brawlers.forEach(brawlerName => {
-                    const brawler = allBrawlersData.find(b => b.name === brawlerName);
-                    if (brawler) {
-                        brawlersListHtml += `
-                            <li class="flex items-center mb-2 last:mb-0">
-                                <button data-brawler-name="${brawler.name}" class="brawler-detail-button flex items-center p-2 rounded-lg hover:bg-zinc-700 transition duration-200 w-full text-left">
-                                    <img src="${brawler.icon}" alt="${brawler.name}" class="w-8 h-8 rounded-full mr-2 object-cover border border-purple-400 shadow-md" />
-                                    <span class="text-md text-[#bbbbbb] font-medium">${brawler.name}</span>
-                                </button>
-                            </li>
-                        `;
-                    }
-                });
+            const lowerCaseClassSearchQuery = classSearchQuery.toLowerCase();
+            const filteredClasses = Object.entries(brawlerClassesData).filter(([className, data]) =>
+                className.toLowerCase().includes(lowerCaseClassSearchQuery)
+            );
 
-                classesHtml += `
-                    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105">
-                        <h3 class="text-2xl font-semibold mb-4 text-white flex items-center">
-                            <span class="mr-2 text-3xl">${data.emoji}</span> ${className}
-                        </h3>
-                        <ul class="list-none p-0">
-                            ${brawlersListHtml}
-                        </ul>
-                    </div>
-                `;
+            let classesHtml = '';
+            if (filteredClasses.length > 0) {
+                filteredClasses.forEach(([className, data]) => {
+                    let brawlersListHtml = '';
+                    data.brawlers.forEach(brawlerName => {
+                        const brawler = allBrawlersData.find(b => b.name === brawlerName);
+                        if (brawler) {
+                            const rarityColorStyle = `color: ${getRarityTextColor(brawler.rarity)};`;
+                            const rarityBorderStyle = `border-color: ${getRarityBorderColor(brawler.rarity)};`;
+                            brawlersListHtml += `
+                                <li class="flex items-center mb-2 last:mb-0">
+                                    <button data-brawler-name="${brawler.name}" class="brawler-detail-button flex items-center p-2 rounded-lg hover:bg-zinc-700 transition duration-200 w-full text-left">
+                                        <img src="${brawler.icon}" alt="${brawler.name}" class="w-8 h-8 rounded-md mr-2 object-cover border-2 shadow-md" style="${rarityBorderStyle}" />
+                                        <span class="text-md font-medium" style="${rarityColorStyle}">${brawler.name}</span>
+                                    </button>
+                                </li>
+                            `;
+                        }
+                    });
+
+                    classesHtml += `
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105">
+                            <h3 class="text-2xl font-semibold mb-4 text-white flex items-center">
+                                <span class="mr-2 text-3xl">${data.emoji}</span> ${className}
+                            </h3>
+                            <ul class="list-none p-0">
+                                ${brawlersListHtml}
+                            </ul>
+                        </div>
+                    `;
+                });
+            } else {
+                classesHtml = `<p class="text-center text-xl text-gray-400 col-span-full">Nessuna classe trovata per la ricerca selezionata.</p>`;
             }
 
             contentArea.innerHTML = `
                 <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
                     <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Classi dei Brawler</h2>
+
+                    <div class="mb-8 p-4 bg-zinc-800 rounded-xl shadow-lg border border-zinc-700">
+                        <label for="class-search" class="block text-xl font-semibold text-white mb-2">Cerca Classe per Nome:</label>
+                        <input type="text" id="class-search" value="${classSearchQuery}" placeholder="Es. Assassini"
+                               class="w-full p-3 rounded-lg bg-zinc-700 text-white border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         ${classesHtml}
                     </div>
@@ -590,32 +623,55 @@
             contentArea.querySelectorAll('.brawler-detail-button').forEach(button => {
                 button.onclick = (event) => navigate('brawlerDetail', event.currentTarget.dataset.brawlerName);
             });
+            document.getElementById('class-search').oninput = (event) => {
+                classSearchQuery = event.target.value;
+                renderBrawlerClasses(); // Re-render to apply search filter
+            };
         };
 
-        const renderBrawlerDescription = () => {
+        const renderBrawlersSection = () => { // Renamed from renderBrawlerDescription
+            const lowerCaseBrawlerSearchQuery = brawlerSearchQuery.toLowerCase();
+            const filteredBrawlers = allBrawlersData.filter(brawler =>
+                brawler.name.toLowerCase().includes(lowerCaseBrawlerSearchQuery)
+            );
+
             let brawlersHtml = '';
-            allBrawlersData.forEach(brawler => {
-                brawlersHtml += `
-                    <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105">
-                        <div class="flex items-center mb-4">
-                            <img src="${brawler.icon}" alt="${brawler.name}" class="w-16 h-16 rounded-full mr-4 object-cover border border-purple-400 shadow-md" />
-                            <div>
-                                <h3 class="text-3xl font-semibold text-white">${brawler.name}</h3>
-                                <p class="text-lg text-[#bbbbbb]">Rarità: <span class="font-medium">${brawler.rarity}</span></p>
-                                <p class="text-lg text-[#bbbbbb]">Ruolo: <span class="font-medium">${brawler.role}</span></p>
+            if (filteredBrawlers.length > 0) {
+                filteredBrawlers.forEach(brawler => {
+                    const rarityColorStyle = `color: ${getRarityTextColor(brawler.rarity)};`;
+                    const rarityBorderStyle = `border-color: ${getRarityBorderColor(brawler.rarity)};`;
+                    brawlersHtml += `
+                        <div class="bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700 transform transition duration-300 hover:scale-105 flex flex-col items-center text-center">
+                            <div class="flex items-center mb-4">
+                                <img src="${brawler.icon}" alt="${brawler.name}" class="w-16 h-16 rounded-md mr-4 object-cover border-2 shadow-md" style="${rarityBorderStyle}" />
+                                <div>
+                                    <h3 class="text-3xl font-semibold" style="${rarityColorStyle}">${brawler.name}</h3>
+                                    <p class="text-lg text-[#bbbbbb]">Rarità: <span class="font-medium">${brawler.rarity}</span></p>
+                                    <p class="text-lg text-[#bbbbbb]">Ruolo: <span class="font-medium">${brawler.role}</span></p>
+                                </div>
                             </div>
+                            <p class="text-base text-[#bbbbbb] mb-4">${brawler.description}</p>
+                            <button data-brawler-name="${brawler.name}" class="brawler-detail-button mt-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-400 focus:ring-opacity-50 text-lg w-full max-w-xs mx-auto">
+                                Vedi Dettagli
+                            </button>
                         </div>
-                        <p class="text-base text-[#bbbbbb] mb-4">${brawler.description}</p>
-                        <button data-brawler-name="${brawler.name}" class="brawler-detail-button mt-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-400 focus:ring-opacity-50 text-lg w-full">
-                            Vedi Dettagli
-                        </button>
-                    </div>
-                `;
-            });
+                    `;
+                });
+            } else {
+                brawlersHtml = `<p class="text-center text-xl text-gray-400 col-span-full">Nessun brawler trovato per la ricerca selezionata.</p>`;
+            }
+
 
             contentArea.innerHTML = `
                 <div class="p-6 bg-[rgba(30,30,30,1)] min-h-screen text-white rounded-lg shadow-xl m-4">
-                    <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Descrizione Dettagliata dei Brawler</h2>
+                    <h2 class="text-4xl font-bold mb-8 text-center text-yellow-300">Brawlers</h2>
+
+                    <div class="mb-8 p-4 bg-zinc-800 rounded-xl shadow-lg border border-zinc-700">
+                        <label for="brawler-search" class="block text-xl font-semibold text-white mb-2">Cerca Brawler per Nome:</label>
+                        <input type="text" id="brawler-search" value="${brawlerSearchQuery}" placeholder="Es. Shelly"
+                               class="w-full p-3 rounded-lg bg-zinc-700 text-white border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         ${brawlersHtml}
                     </div>
@@ -624,6 +680,10 @@
             contentArea.querySelectorAll('.brawler-detail-button').forEach(button => {
                 button.onclick = (event) => navigate('brawlerDetail', event.currentTarget.dataset.brawlerName);
             });
+            document.getElementById('brawler-search').oninput = (event) => {
+                brawlerSearchQuery = event.target.value;
+                renderBrawlersSection(); // Re-render to apply search filter
+            };
         };
 
         const renderBrawlerDetail = () => {
@@ -637,9 +697,12 @@
                         </button>
                     </div>
                 `;
-                document.getElementById('back-from-detail').onclick = () => navigate('brawlerDescription');
+                document.getElementById('back-from-detail').onclick = () => navigate('brawlers');
                 return;
             }
+
+            const rarityColorStyle = `color: ${getRarityTextColor(selectedBrawler.rarity)};`;
+            const rarityBorderStyle = `border-color: ${getRarityBorderColor(selectedBrawler.rarity)};`;
 
             let gadgetsHtml = selectedBrawler.stats.gadgets.length > 0 ?
                 `<ul class="list-disc list-inside ml-4">
@@ -679,9 +742,9 @@
                     </button>
 
                     <div class="flex flex-col md:flex-row items-center md:items-start mb-8 bg-gradient-to-br from-zinc-800 to-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-700">
-                        <img src="${selectedBrawler.icon}" alt="${selectedBrawler.name}" class="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-yellow-400 mb-4 md:mb-0 md:mr-8 object-cover shadow-lg" />
+                        <img src="${selectedBrawler.icon}" alt="${selectedBrawler.name}" class="w-32 h-32 md:w-48 md:h-48 rounded-md border-4 border-yellow-400 mb-4 md:mb-0 md:mr-8 object-cover shadow-lg" style="${rarityBorderStyle}"/>
                         <div class="text-center md:text-left">
-                            <h2 class="text-5xl font-extrabold text-white mb-2">${selectedBrawler.name}</h2>
+                            <h2 class="text-5xl font-extrabold text-white mb-2" style="${rarityColorStyle}">${selectedBrawler.name}</h2>
                             <p class="text-xl text-[#bbbbbb] mb-1">Rarità: <span class="font-semibold text-white">${selectedBrawler.rarity}</span></p>
                             <p class="text-xl text-[#bbbbbb]">Ruolo: <span class="font-semibold text-white">${selectedBrawler.role}</span></p>
                             <p class="text-md text-[#bbbbbb] mt-4 max-w-xl">${selectedBrawler.description}</p>
@@ -715,7 +778,7 @@
                     </div>
                 </div>
             `;
-            document.getElementById('back-from-detail').onclick = () => navigate('brawlerDescription');
+            document.getElementById('back-from-detail').onclick = () => navigate('brawlers');
         };
 
         const renderAboutSection = () => {
@@ -733,11 +796,14 @@
             `;
         };
 
-        // Funzione per renderizzare la sezione corrente
+        // Function to render the current section
         const renderSection = () => {
             switch (activeSection) {
                 case 'home':
                     renderHomeSection();
+                    break;
+                case 'gameModesCategories': // New case for initial map screen
+                    renderGameModesCategories();
                     break;
                 case 'mapsAndBrawlers':
                     renderMapsAndBestBrawlers();
@@ -745,8 +811,8 @@
                 case 'brawlerClasses':
                     renderBrawlerClasses();
                     break;
-                case 'brawlerDescription':
-                    renderBrawlerDescription();
+                case 'brawlers':
+                    renderBrawlersSection();
                     break;
                 case 'brawlerDetail':
                     renderBrawlerDetail();
@@ -759,17 +825,26 @@
             }
         };
 
-        // --- Event Listeners Globali per la Navigazione ---
+        // --- Global Event Listeners for Navigation and Modal ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Listeners for main navigation buttons
             navButtons['home'].onclick = () => navigate('home');
-            navButtons['mapsAndBrawlers'].onclick = () => navigate('mapsAndBrawlers');
+            navButtons['maps'].onclick = () => navigate('gameModesCategories'); // Changed maps button to navigate to categories
             navButtons['classes'].onclick = () => navigate('brawlerClasses');
-            navButtons['description'].onclick = () => navigate('brawlerDescription');
+            navButtons['brawlers'].onclick = () => navigate('brawlers');
             navButtons['about'].onclick = () => navigate('about');
 
-            // Renderizza la sezione iniziale
+            // Listener to close the map modal
+            document.getElementById('close-map-modal').onclick = hideMapModal;
+            document.getElementById('map-modal').onclick = (event) => {
+                if (event.target === event.currentTarget) { // Close only if clicking on the overlay
+                    hideMapModal();
+                }
+            };
+
+            // Render the initial section when the page loads
             renderSection();
-            updateNavButtonStyles(); // Aggiorna gli stili iniziali
+            updateNavButtonStyles(); // Update initial styles
         });
     </script>
 
